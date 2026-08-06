@@ -1,0 +1,6 @@
+{
+  "name": "Agentic Workspace Console",
+  "description": "An interactive multi-agent workspace console supporting local LM Studio/Ollama connections, secure sandbox execution, and real-time document workspace management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

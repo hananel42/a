@@ -1,0 +1,165 @@
+@import url("https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap");
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans:
+    "Plus Jakarta Sans", "Assistant", "Rubik", "Inter", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-mono:
+    "JetBrains Mono", "Courier New", Courier, Consolas, "Liberation Mono",
+    monospace;
+}
+
+code,
+pre,
+kbd,
+samp,
+.font-mono {
+  font-family:
+    "JetBrains Mono", "Courier New", Courier, Consolas, "Liberation Mono",
+    monospace !important;
+}
+
+/* Base style resets and customizations */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Premium micro-animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-left {
+  animation: slideLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Clean Custom Scrollbars */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Pixel-perfect scroll alignment fix */
+.rendered-markdown-card > .markdown-body > *:first-child {
+  margin-top: 0 !important;
+}
+
+/* Custom styles for printing support */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #app-workspace,
+  #app-workspace * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+  .prose,
+  .prose * {
+    visibility: visible;
+  }
+  .prose {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  /* Hide UI elements from print */
+  #app-workspace > div:first-child, /* sidebar */
+  #app-workspace > div:last-child, /* help */
+  .flex-col /* header/toolbar groups */ {
+    display: none !important;
+  }
+}
+
+/* Ensure checklist items never show standard list bullet pseudo-elements or bullets */
+.prose ul > li.checklist-item::before,
+.prose li.checklist-item::before {
+  content: none !important;
+  display: none !important;
+}
+
+.prose ul > li.checklist-item,
+.prose li.checklist-item {
+  list-style-type: none !important;
+  padding-left: 0 !important;
+}
