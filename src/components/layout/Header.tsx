@@ -75,7 +75,7 @@ export default function Header({
       </div>
 
       {/* Export Action Controls */}
-      {activeFile.id && (
+      {activeFile.id && activeFile.title?.toLowerCase().endsWith(".md") && (
         <div className="flex items-center gap-2 shrink-0 relative" ref={menuRef}>
           <div className="relative">
             <button

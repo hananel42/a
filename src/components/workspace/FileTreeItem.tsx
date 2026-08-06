@@ -125,7 +125,22 @@ export default function FileTreeItem({
   const isExpanded = searchQuery ? true : item.isExpanded;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuPositionClass, setMenuPositionClass] = useState("top-6");
   const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleMenuClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isMenuOpen) {
+      const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      if (spaceBelow < 150) {
+        setMenuPositionClass("bottom-6");
+      } else {
+        setMenuPositionClass("top-6");
+      }
+    }
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   const handleDragStart = (e: React.DragEvent) => {
     e.stopPropagation();
@@ -263,10 +278,7 @@ export default function FileTreeItem({
               <>
                 {/* Sleek three-dots menu button */}
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsMenuOpen(!isMenuOpen);
-                  }}
+                  onClick={handleMenuClick}
                   className="p-0.5 opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-all duration-150"
                   title="Actions"
                 >
@@ -285,7 +297,7 @@ export default function FileTreeItem({
                     />
                     {/* Floating contextual action menu */}
                     <div
-                      className="absolute right-0 top-6 z-[1000] min-w-[120px] bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] rounded-lg shadow-2xl p-1 flex flex-col text-[11px] text-[var(--theme-text,#f1f5f9)] font-medium"
+                      className={`absolute right-0 ${menuPositionClass} z-[1000] min-w-[120px] bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] rounded-lg shadow-2xl p-1 flex flex-col text-[11px] text-[var(--theme-text,#f1f5f9)] font-medium`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {isFolder && (

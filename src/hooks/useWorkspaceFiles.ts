@@ -50,10 +50,21 @@ export function useWorkspaceFiles(
 
   const createNewFile = () => {
     const newId = `file-${Date.now()}`;
+    const baseTitle = "Untitled Document";
+
+    // Generate unique title
+    let uniqueTitle = baseTitle;
+    let counter = 1;
+    const existingTitles = new Set(files.map((f) => f.title.toLowerCase()));
+    while (existingTitles.has(uniqueTitle.toLowerCase())) {
+      uniqueTitle = `${baseTitle} (${counter})`;
+      counter++;
+    }
+
     const newFile: MarkdownFile = {
       id: newId,
-      title: "Untitled Document",
-      content: "# Untitled Document\n\nWrite your content here...",
+      title: uniqueTitle,
+      content: `# ${uniqueTitle}\n\nWrite your content here...`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -84,11 +95,23 @@ export function useWorkspaceFiles(
 
   const updateFileTitle = (id: string, newTitle: string) => {
     const cleanTitle = newTitle.trim() || "Untitled Document";
+    
+    // Ensure title is unique
+    let uniqueTitle = cleanTitle;
+    let counter = 1;
+    const existingTitles = new Set(
+      files.filter((f) => f.id !== id).map((f) => f.title.toLowerCase())
+    );
+    while (existingTitles.has(uniqueTitle.toLowerCase())) {
+      uniqueTitle = `${cleanTitle} (${counter})`;
+      counter++;
+    }
+
     const updated = files.map((file) => {
       if (file.id === id) {
         return {
           ...file,
-          title: cleanTitle,
+          title: uniqueTitle,
           updatedAt: new Date().toISOString(),
         };
       }
@@ -130,6 +153,7 @@ export function useWorkspaceFiles(
 
     let processedCount = 0;
     const newFileObjects: MarkdownFile[] = [];
+    const currentTitles = new Set(files.map((f) => f.title.toLowerCase()));
 
     validFiles.forEach((file, index) => {
       const reader = new FileReader();
@@ -138,11 +162,19 @@ export function useWorkspaceFiles(
         const cleanTitle = file.name
           .replace(/\\.(md|txt)$/i, "")
           .replace(/_/g, " ")
-          .trim();
+          .trim() || "Uploaded Document";
+
+        let uniqueTitle = cleanTitle;
+        let counter = 1;
+        while (currentTitles.has(uniqueTitle.toLowerCase())) {
+          uniqueTitle = `${cleanTitle} (${counter})`;
+          counter++;
+        }
+        currentTitles.add(uniqueTitle.toLowerCase());
 
         newFileObjects.push({
           id: `file-${Date.now()}-${index}-${Math.floor(Math.random() * 1000)}`,
-          title: cleanTitle || "Uploaded Document",
+          title: uniqueTitle,
           content: text || "",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),

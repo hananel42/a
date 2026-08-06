@@ -132,7 +132,26 @@ export function useWorkspace(
     content = "",
     selectAfterCreate = false,
   ) => {
-    const cleanName = name.trim() || "untitled.md";
+    let cleanName = name.trim() || "untitled.md";
+    
+    let baseName = cleanName;
+    let extension = "";
+    const lastDotIndex = cleanName.lastIndexOf(".");
+    if (lastDotIndex > 0) {
+      baseName = cleanName.substring(0, lastDotIndex);
+      extension = cleanName.substring(lastDotIndex);
+    }
+
+    let counter = 1;
+    const existingNames = new Set(
+      items.filter((i) => i.parentId === parentId).map((i) => i.name.toLowerCase())
+    );
+
+    while (existingNames.has(cleanName.toLowerCase())) {
+      cleanName = `${baseName} (${counter})${extension}`;
+      counter++;
+    }
+
     const newId = `file-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const timestamp = new Date().toISOString();
 
@@ -171,7 +190,19 @@ export function useWorkspace(
   };
 
   const createFolder = async (name: string, parentId: string | null) => {
-    const cleanName = name.trim() || "New Folder";
+    let cleanName = name.trim() || "New Folder";
+    
+    let counter = 1;
+    let baseName = cleanName;
+    const existingNames = new Set(
+      items.filter((i) => i.parentId === parentId).map((i) => i.name.toLowerCase())
+    );
+
+    while (existingNames.has(cleanName.toLowerCase())) {
+      cleanName = `${baseName} (${counter})`;
+      counter++;
+    }
+
     const newId = `folder-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const timestamp = new Date().toISOString();
 
@@ -206,7 +237,7 @@ export function useWorkspace(
   };
 
   const renameItem = async (id: string, newName: string) => {
-    const cleanName = newName.trim();
+    let cleanName = newName.trim();
     if (!cleanName) return;
 
     if (localFolder) {
@@ -215,6 +246,36 @@ export function useWorkspace(
         "error",
       );
       return;
+    }
+
+    const itemToRename = items.find((i) => i.id === id);
+    if (!itemToRename) return;
+
+    let counter = 1;
+    let baseName = cleanName;
+    let extension = "";
+
+    if (itemToRename.type === "file") {
+      const lastDotIndex = cleanName.lastIndexOf(".");
+      if (lastDotIndex > 0) {
+        baseName = cleanName.substring(0, lastDotIndex);
+        extension = cleanName.substring(lastDotIndex);
+      }
+    }
+
+    const existingNames = new Set(
+      items
+        .filter((i) => i.parentId === itemToRename.parentId && i.id !== id)
+        .map((i) => i.name.toLowerCase())
+    );
+
+    while (existingNames.has(cleanName.toLowerCase())) {
+      if (itemToRename.type === "file") {
+        cleanName = `${baseName} (${counter})${extension}`;
+      } else {
+        cleanName = `${baseName} (${counter})`;
+      }
+      counter++;
     }
 
     persistWorkspace((prev) =>
@@ -337,7 +398,28 @@ export function useWorkspace(
   ): Promise<void> => {
     if (!uploadedFiles || uploadedFiles.length === 0) return;
 
+    const existingNames = new Set(
+      items.filter((i) => i.parentId === parentId).map((i) => i.name.toLowerCase())
+    );
+
     const filePromises = uploadedFiles.map((file, idx) => {
+      let cleanName = file.name;
+      let counter = 1;
+      let baseName = cleanName;
+      let extension = "";
+      
+      const lastDotIndex = cleanName.lastIndexOf(".");
+      if (lastDotIndex > 0) {
+        baseName = cleanName.substring(0, lastDotIndex);
+        extension = cleanName.substring(lastDotIndex);
+      }
+
+      while (existingNames.has(cleanName.toLowerCase())) {
+        cleanName = `${baseName} (${counter})${extension}`;
+        counter++;
+      }
+      existingNames.add(cleanName.toLowerCase());
+
       return new Promise<WorkspaceItem>((resolve, reject) => {
         const reader = new FileReader();
         const isMedia = /\.(png|jpe?g|gif|webp|svg|ico|mp4|webm)$/i.test(
@@ -348,7 +430,7 @@ export function useWorkspace(
           const contentVal = (event.target?.result as string) || "";
           resolve({
             id: `file-${Date.now()}-${idx}-${Math.floor(Math.random() * 10000)}`,
-            name: file.name,
+            name: cleanName,
             type: "file",
             parentId,
             content: contentVal,

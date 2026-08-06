@@ -119,6 +119,21 @@ export default function FileExplorer({
 
   // Compact layout actions menu
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [menuPositionClass, setMenuPositionClass] = useState("top-6");
+
+  const handleMenuClick = (e: React.MouseEvent, itemId: string) => {
+    e.stopPropagation();
+    if (activeMenuId !== itemId) {
+      const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      if (spaceBelow < 150) {
+        setMenuPositionClass("bottom-6");
+      } else {
+        setMenuPositionClass("top-6");
+      }
+    }
+    setActiveMenuId(activeMenuId === itemId ? null : itemId);
+  };
 
   // Inline editing & creation state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -810,10 +825,7 @@ export default function FileExplorer({
                           <>
                             {/* Actions menu vertical ellipsis */}
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveMenuId(activeMenuId === item.lastItem.id ? null : item.lastItem.id);
-                              }}
+                              onClick={(e) => handleMenuClick(e, item.lastItem.id)}
                               className="p-0.5 opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-all duration-150"
                               title="Actions"
                             >
@@ -830,7 +842,7 @@ export default function FileExplorer({
                                   }}
                                 />
                                 <div
-                                  className="absolute right-0 top-6 z-[1000] min-w-[120px] bg-[#0c1322] border border-[#1e293b] rounded-lg shadow-2xl p-1 flex flex-col text-[11px] text-slate-300 font-medium"
+                                  className={`absolute right-0 ${menuPositionClass} z-[1000] min-w-[120px] bg-[#0c1322] border border-[#1e293b] rounded-lg shadow-2xl p-1 flex flex-col text-[11px] text-slate-300 font-medium`}
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   {isFolder && (
