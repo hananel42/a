@@ -7,7 +7,7 @@
 import React, { useRef, useState } from "react";
 import { Sliders, RefreshCw, Eye, FileCode } from "lucide-react";
 import { AgentPromptConfig } from "../../types/agent";
-import { getDefaultSystemPromptTemplate } from "../../utils/promptBuilder";
+import { DEFAULT_SYSTEM_PROMPT_TEMPLATE } from "../../constants/agentPrompts";
 import { WORKSPACE_PYTHON_DOCS } from "../../constants/workspacePythonDocs";
 
 interface AgentAdvancedSettingsProps {
@@ -54,7 +54,7 @@ export default function AgentAdvancedSettings({
     const el = textareaRef.current;
     const start = el.selectionStart;
     const end = el.selectionEnd;
-    const currentVal = template || getDefaultSystemPromptTemplate();
+    const currentVal = template || DEFAULT_SYSTEM_PROMPT_TEMPLATE;
 
     const newVal =
       currentVal.substring(0, start) + varStr + currentVal.substring(end);
@@ -67,16 +67,15 @@ export default function AgentAdvancedSettings({
   };
 
   const handleLoadDefaultTemplate = () => {
-    const defaultTmpl = getDefaultSystemPromptTemplate();
     onChangePromptConfig({
       ...promptConfig,
-      systemPromptTemplate: defaultTmpl,
+      systemPromptTemplate: DEFAULT_SYSTEM_PROMPT_TEMPLATE,
     });
   };
 
   // Evaluate preview string
   const evaluatePreview = () => {
-    let tmpl = template.trim() ? template : getDefaultSystemPromptTemplate();
+    let tmpl = template.trim() ? template : DEFAULT_SYSTEM_PROMPT_TEMPLATE;
     tmpl = tmpl.replace(/\$\{name\}/g, agentName || "Code Auditor");
     tmpl = tmpl.replace(/\$\{id\}/g, agentId || "code-auditor");
     tmpl = tmpl.replace(
@@ -87,8 +86,14 @@ export default function AgentAdvancedSettings({
       /\$\{instructions\}/g,
       agentInstructions || "Enforce clean design principles.",
     );
-    tmpl = tmpl.replace(/\$\{workspace-python-docs\}/g, WORKSPACE_PYTHON_DOCS);
-    tmpl = tmpl.replace(/\$\{workspacePythonDocs\}/g, WORKSPACE_PYTHON_DOCS);
+    tmpl = tmpl.replace(
+      /\$\{workspace-python-docs\}/g,
+      "[Workspace Python Documentation Block]"
+    );
+    tmpl = tmpl.replace(
+      /\$\{workspacePythonDocs\}/g,
+      "[Workspace Python Documentation Block]"
+    );
     tmpl = tmpl.replace(
       /\$\{allowedTools\}/g,
       "read_file, write_file, list_dir",
@@ -97,15 +102,16 @@ export default function AgentAdvancedSettings({
     tmpl = tmpl.replace(/\$\{allowedWritePaths\}/g, "/");
     tmpl = tmpl.replace(
       /\$\{activeFiles\}/g,
-      "- src/App.tsx (file)\n- package.json (file)",
+      promptConfig.includeActiveFiles === true ? `### WORKSPACE ACTIVE FILES\n- src/App.tsx (file)\n- package.json (file)` : ""
     );
-    tmpl = tmpl.replace(/\$\{workspaceTree\}/g, "📁 src\n  📄 App.tsx");
+    tmpl = tmpl.replace(
+      /\$\{workspaceTree\}/g,
+      promptConfig.includeWorkspaceTree === true ? `### WORKSPACE DIRECTORY TREE\n\`\`\`\n📁 src\n  📄 App.tsx\n\`\`\`` : ""
+    );
     tmpl = tmpl.replace(
       /\$\{memories\}/g,
-      "- Prefers modular TypeScript code.",
+      promptConfig.includeMemories !== false ? `### PERSISTENT MEMORIES\n- Prefers modular TypeScript code.` : ""
     );
-    tmpl = tmpl.replace(/\$\{preamble\}/g, promptConfig.preamble || "");
-    tmpl = tmpl.replace(/\$\{postamble\}/g, promptConfig.postamble || "");
     return tmpl;
   };
 
@@ -181,7 +187,7 @@ export default function AgentAdvancedSettings({
               })
             }
             rows={10}
-            placeholder={getDefaultSystemPromptTemplate()}
+            placeholder={DEFAULT_SYSTEM_PROMPT_TEMPLATE}
             className="w-full p-3 text-xs font-mono rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 leading-relaxed"
           />
           <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">

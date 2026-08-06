@@ -28,20 +28,16 @@ export const INITIAL_SAMPLE_TOOL_JSON = `{
 export const INITIAL_SAMPLE_TOOL_SCRIPT = `# /.agents/admin/tools/sample_tool/script.py
 # Example Custom Python Tool using the zero-dependency workspace API
 from workspace import llm, tools
-import sys, json
 
-# Parse input parameter from stdin
-try:
-    data = json.loads(sys.stdin.read())
-    message = data.get("message", "Hello Workspace")
-except Exception:
-    message = "Hello Workspace"
-
-tools.log(f"Processing message: {message}")
-
-# Use the workspace LLM engine to generate a response
-response = llm.generate(f"Acknowledge and summarize this input concisely: {message}")
-print(f"Tool Output: {response}")
+def sample_tool(message: str) -> str:
+    """
+    A custom tool that uses the workspace LLM engine to generate a response.
+    """
+    tools.log(f"Processing message: {message}")
+    
+    # Use the workspace LLM engine to generate a response
+    response = llm.generate(f"Acknowledge and summarize this input concisely: {message}")
+    return f"Tool Output: {response}"
 `;
 
 export function getDefaultWorkspaceItems(): WorkspaceItem[] {

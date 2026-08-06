@@ -123,7 +123,7 @@ This document provides a comprehensive developer reference for the codebase of *
 - `src/tools/getInfo.ts`: Tool execution handler for `get_info`. Returns file metadata, type, and size.
 - `src/tools/deleteFile.ts`: Tool execution handler for `delete_file`. Performs file and directory deletion.
 - `src/tools/runPython.ts`: Tool execution handler for `run_python`. Executes Python code in browser via Pyodide.
-- `src/tools/searchWikipedia.ts`: Tool execution handler for `search_wikipedia`. Queries Wikipedia REST API.
+- `src/tools/searchWikipedia.ts`: Tool execution handler for `search_wikipedia`. Queries Wikipedia's MediaWiki API, parsing rich HTML with DOMParser to cleanly convert headers, nested lists, and structured tabular data (including infoboxes) into beautifully formatted Markdown.
 - `src/tools/callAgent.ts`: Tool execution handler for `call_agent`. Triggers recursive sub-agent conversation loops.
 - `src/tools/createAgent.ts`: Tool execution handler for `create_agent`. Dynamically provisions new agent profiles in the workspace.
 - `src/tools/saveMemory.ts`: Tool execution handler for `save_memory`. Appends persistent memory strings to `.agents/[agent-id]/memories.txt`.

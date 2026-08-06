@@ -11,7 +11,7 @@ import { WorkspaceItem } from "../../types/workspace";
 import AgentNormalSettings from "./AgentNormalSettings";
 import AgentAdvancedSettings from "./AgentAdvancedSettings";
 import AgentPathPermissions from "./AgentPathPermissions";
-import { getDefaultSystemPromptTemplate } from "../../utils/promptBuilder";
+import { DEFAULT_SYSTEM_PROMPT_TEMPLATE } from "../../constants/agentPrompts";
 
 interface AgentFormProps {
   initialAgent?: Agent;
@@ -129,7 +129,7 @@ export default function AgentForm({
       includeMemories: true,
     };
     if (!config.systemPromptTemplate) {
-      config.systemPromptTemplate = getDefaultSystemPromptTemplate();
+      config.systemPromptTemplate = DEFAULT_SYSTEM_PROMPT_TEMPLATE;
     }
     return config;
   });
@@ -180,7 +180,7 @@ export default function AgentForm({
         }),
       };
       if (!config.systemPromptTemplate) {
-        config.systemPromptTemplate = getDefaultSystemPromptTemplate();
+        config.systemPromptTemplate = DEFAULT_SYSTEM_PROMPT_TEMPLATE;
       }
       setPromptConfig(config);
 
@@ -202,7 +202,7 @@ export default function AgentForm({
         includeActiveFiles: false,
         includeWorkspaceTree: false,
         includeMemories: true,
-        systemPromptTemplate: getDefaultSystemPromptTemplate(),
+        systemPromptTemplate: DEFAULT_SYSTEM_PROMPT_TEMPLATE,
       });
       setExamplePrompts(["", "", ""]);
       setAllowAgentFolderAccess(false);
