@@ -15,10 +15,15 @@ import Header from "../layout/Header";
 import Toolbar from "../layout/Toolbar";
 import HelpDrawer from "../layout/HelpDrawer";
 import { LinkDialog, MediaDialog, TableDialog } from "../Dialogs/index";
+import FileTabs from "./FileTabs";
+import { Compass } from "lucide-react";
+
+import { AppTheme } from "../../utils/theme";
 
 interface WorkspaceTabProps {
   workspace: any;
   showNotification: (msg: string, type?: "success" | "error") => void;
+  appTheme?: AppTheme;
 }
 
 /**
@@ -27,6 +32,7 @@ interface WorkspaceTabProps {
 export default function WorkspaceTab({
   workspace,
   showNotification,
+  appTheme,
 }: WorkspaceTabProps) {
   const {
     items,
@@ -44,6 +50,9 @@ export default function WorkspaceTab({
     disconnectLocalFolder,
     processUploadedFiles,
     moveItem,
+    collapseAllFolders,
+    openFileIds,
+    closeTab,
   } = workspace;
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -55,24 +64,40 @@ export default function WorkspaceTab({
     media: false,
   });
   const [mode, setMode] = useState<EditorMode>("split");
-  const [previewStyle, setPreviewStyle] = useState<
+  const [internalPreviewStyle, setPreviewStyle] = useState<
     "standard" | "serif" | "newspaper" | "nord" | "tech"
   >("standard");
+
+  const previewStyle = appTheme ? appTheme.markdownStyle : internalPreviewStyle;
 
   const editorTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const viewerScrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const mappedActiveFile = {
-    id: activeFile.id,
-    title: activeFile.name,
-    content: activeFile.content || "",
-    createdAt: activeFile.createdAt,
-    updatedAt: activeFile.updatedAt,
-  };
-  useExport(mappedActiveFile, previewStyle, showNotification);
+  const mappedActiveFile = activeFile
+    ? {
+        id: activeFile.id,
+        title: activeFile.name,
+        content: activeFile.content || "",
+        createdAt: activeFile.createdAt,
+        updatedAt: activeFile.updatedAt,
+      }
+    : {
+        id: "",
+        title: "",
+        content: "",
+        createdAt: "",
+        updatedAt: "",
+      };
+  const { downloadPDFFile, downloadMarkdownFile } = useExport(
+    mappedActiveFile,
+    previewStyle,
+    showNotification,
+  );
 
   const handleContentChange = (newContent: string) => {
-    updateFileContent(activeFile.id, newContent);
+    if (activeFile) {
+      updateFileContent(activeFile.id, newContent);
+    }
   };
 
   const handleFormat = (type: FormatType, additionalData?: any) => {
@@ -126,6 +151,7 @@ export default function WorkspaceTab({
   };
 
   const downloadActiveFile = () => {
+    if (!activeFile) return;
     const contentVal = activeFile.content || "";
     const isBase64 = contentVal.startsWith("data:");
 
@@ -157,15 +183,19 @@ export default function WorkspaceTab({
   };
 
   const isMarkdown =
-    activeFile.name.endsWith(".md") || activeFile.name.endsWith(".markdown");
+    activeFile
+      ? activeFile.name.endsWith(".md") || activeFile.name.endsWith(".markdown")
+      : false;
   const wordCount =
-    isMarkdown && activeFile.content
+    isMarkdown && activeFile && activeFile.content
       ? activeFile.content.trim().split(/\s+/).filter(Boolean).length
       : 0;
-  const charCount = activeFile.content ? activeFile.content.length : 0;
+  const charCount = activeFile && activeFile.content ? activeFile.content.length : 0;
+
+  const hasTabs = Boolean(openFileIds && openFileIds.length > 0 && activeFile);
 
   return (
-    <div id="workspace-tab" className="flex flex-1 h-full overflow-hidden">
+    <div id="workspace-tab" className="flex flex-1 h-full overflow-hidden bg-[var(--theme-bg,#09090b)] text-[var(--theme-text,#f4f4f5)]">
       <PrintStyle previewStyle={previewStyle} />
 
       {/* A. FILE EXPLORER SIDEBAR */}
@@ -184,6 +214,7 @@ export default function WorkspaceTab({
           disconnectLocalFolder={disconnectLocalFolder}
           processUploadedFiles={processUploadedFiles}
           moveItem={moveItem}
+          collapseAllFolders={collapseAllFolders}
         />
       )}
 
@@ -191,47 +222,81 @@ export default function WorkspaceTab({
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <Header
           activeFile={{
-            id: activeFile.id,
-            title: activeFile.name,
-            content: activeFile.content || "",
-            createdAt: activeFile.createdAt,
-            updatedAt: activeFile.updatedAt,
+            id: hasTabs && activeFile ? activeFile.id : "",
+            title: hasTabs && activeFile ? activeFile.name : "(No open files)",
+            content: hasTabs && activeFile ? (activeFile.content || "") : "",
+            createdAt: hasTabs && activeFile ? activeFile.createdAt : "",
+            updatedAt: hasTabs && activeFile ? activeFile.updatedAt : "",
           }}
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}
+          onExportPDF={downloadPDFFile}
+          onExportMD={downloadMarkdownFile}
         />
 
-        {isMarkdown && (
-          <Toolbar
-            onFormat={handleFormat}
-            onOpenDialog={openModalDialog}
-            mode={mode}
-            setMode={setMode}
-            wordCount={wordCount}
-            charCount={charCount}
-            previewStyle={previewStyle}
-            setPreviewStyle={setPreviewStyle}
-          />
-        )}
+        {/* File Tabs Bar */}
+        <FileTabs
+          openFileIds={openFileIds || []}
+          activeFileId={hasTabs && activeFile ? activeFile.id : ""}
+          items={items}
+          onSelect={setActiveItemId}
+          onClose={closeTab}
+        />
 
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative bg-white dark:bg-slate-950">
-          <FileViewerRouter
-            fileName={activeFile.name}
-            content={activeFile.content || ""}
-            onChange={handleContentChange}
-            onFormat={handleFormat}
-            mode={mode}
-            previewStyle={previewStyle}
-            activeFileId={activeFile.id}
-            editorRef={editorTextareaRef}
-            viewerScrollContainerRef={viewerScrollContainerRef}
-            onDownload={downloadActiveFile}
-            workspaceItems={items}
-            updateFileContent={updateFileContent}
-            createFile={createFile}
-            createFolder={createFolder}
-          />
-        </div>
+        {!hasTabs || !activeFile ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[var(--theme-bg,#09090b)] text-[var(--theme-text-muted,#a1a1aa)] select-none">
+            <div className="w-16 h-16 rounded-full bg-[var(--theme-card,#18181b)] flex items-center justify-center text-[var(--theme-accent,#6366f1)] mb-4 animate-pulse border border-[var(--theme-border,#27272a)]">
+              <Compass size={28} />
+            </div>
+            <h3 className="text-sm font-semibold text-[var(--theme-text,#f4f4f5)] mb-1.5">No open files</h3>
+            <p className="text-[11px] text-[var(--theme-text-muted,#a1a1aa)] max-w-xs mb-4 leading-relaxed">
+              Select any file from the sidebar explorer, or create a new document to begin writing.
+            </p>
+            <button
+              onClick={() => {
+                createFile("untitled.md", null, "# Untitled\n\nStart writing here...", true);
+              }}
+              className="px-3.5 py-1.5 bg-[var(--theme-accent,#6366f1)] hover:opacity-90 text-white font-medium text-[11px] rounded-xl transition-all cursor-pointer shadow-xs"
+            >
+              Create New Document
+            </button>
+          </div>
+        ) : (
+          <>
+            {isMarkdown && (
+              <Toolbar
+                onFormat={handleFormat}
+                onOpenDialog={openModalDialog}
+                mode={mode}
+                setMode={setMode}
+                wordCount={wordCount}
+                charCount={charCount}
+                previewStyle={previewStyle}
+                setPreviewStyle={setPreviewStyle}
+                onExportPDF={downloadPDFFile}
+              />
+            )}
+
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative bg-white dark:bg-slate-950">
+              <FileViewerRouter
+                fileName={activeFile.name}
+                content={activeFile.content || ""}
+                onChange={handleContentChange}
+                onFormat={handleFormat}
+                mode={mode}
+                previewStyle={previewStyle}
+                activeFileId={activeFile.id}
+                editorRef={editorTextareaRef}
+                viewerScrollContainerRef={viewerScrollContainerRef}
+                onDownload={downloadActiveFile}
+                workspaceItems={items}
+                updateFileContent={updateFileContent}
+                createFile={createFile}
+                createFolder={createFolder}
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {/* C. DIALOG OVERLAYS */}

@@ -3,7 +3,7 @@ import { PreviewStyle } from "./types";
 export const getThemeBackgroundClasses = (style: PreviewStyle): string => {
   switch (style) {
     case "standard":
-      return "bg-white dark:bg-slate-950";
+      return "bg-[var(--theme-card,#101726)] text-[var(--theme-text,#f1f5f9)]";
     case "serif":
       return "bg-[#fcfbf7] dark:bg-[#161614]";
     case "newspaper":
@@ -18,7 +18,7 @@ export const getThemeBackgroundClasses = (style: PreviewStyle): string => {
 export const getThemeTextClasses = (style: PreviewStyle): string => {
   switch (style) {
     case "standard":
-      return "text-slate-800 dark:text-slate-100 font-sans text-[14.5px] leading-relaxed";
+      return "text-[var(--theme-text,#f1f5f9)] font-sans text-[14.5px] leading-relaxed";
     case "serif":
       return "text-[#2c2b29] dark:text-[#e3e1db] font-sans text-[14.5px] leading-relaxed";
     case "newspaper":
@@ -48,7 +48,7 @@ export const getHeadingClasses = (
   }[level];
 
   const colorClasses = {
-    standard: "text-slate-900 dark:text-white",
+    standard: "text-[var(--theme-text,#f1f5f9)]",
     serif: "text-[#1a1a19] dark:text-[#f3f2ef]",
     newspaper: "text-black dark:text-[#faedd0]",
     nord: "text-[#2e3440] dark:text-[#eceff4]",
@@ -61,7 +61,7 @@ export const getHeadingClasses = (
 export const getBlockquoteClasses = (style: PreviewStyle): string => {
   switch (style) {
     case "standard":
-      return "my-6 pl-5 py-1.5 border-l-4 border-indigo-500 bg-indigo-50/30 dark:bg-slate-900/40 text-slate-700 dark:text-slate-300 italic rounded-r-lg font-sans";
+      return "my-6 pl-5 py-1.5 border-l-4 border-[var(--theme-accent,#10b981)] bg-[var(--theme-accent-subtle,rgba(16,185,129,0.1))] text-[var(--theme-text,#f1f5f9)] italic rounded-r-lg font-sans";
     case "serif":
       return "my-6 pl-5 py-1.5 border-l-4 border-amber-600 bg-[#fbf9f3] dark:bg-[#1e1d1a] text-[#42413e] dark:text-[#c4c1ba] italic rounded-r-lg font-sans";
     case "newspaper":
@@ -76,7 +76,7 @@ export const getBlockquoteClasses = (style: PreviewStyle): string => {
 export const getInlineCodeClasses = (style: PreviewStyle): string => {
   switch (style) {
     case "standard":
-      return "bg-slate-100 dark:bg-slate-800/80 text-pink-600 dark:text-pink-400 font-mono text-[0.85em] px-1.5 py-0.5 rounded font-semibold";
+      return "bg-[var(--theme-bg,#070c18)] text-[var(--theme-accent,#10b981)] font-mono text-[0.85em] px-1.5 py-0.5 rounded font-semibold border border-[var(--theme-border,#141d30)]";
     case "serif":
       return "bg-[#f4f1ea] dark:bg-[#252422] text-[#b45309] dark:text-[#f59e0b] font-mono text-[0.85em] px-1.5 py-0.5 rounded";
     case "newspaper":
@@ -91,7 +91,7 @@ export const getInlineCodeClasses = (style: PreviewStyle): string => {
 export const getPlainPreBlockClasses = (style: PreviewStyle): string => {
   switch (style) {
     case "standard":
-      return "my-3 overflow-x-auto w-full max-w-full rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-100/70 dark:bg-slate-900/70 p-3.5 text-slate-800 dark:text-slate-200 font-mono text-xs leading-relaxed";
+      return "my-3 overflow-x-auto w-full max-w-full rounded-xl border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] p-3.5 text-[var(--theme-text,#f1f5f9)] font-mono text-xs leading-relaxed";
     case "serif":
       return "my-3 overflow-x-auto w-full max-w-full rounded-xl border border-[#eae6db] dark:border-[#2a2926] bg-[#f4f1ea]/80 dark:bg-[#252422]/80 p-3.5 text-[#2c2b29] dark:text-[#e3e1db] font-mono text-xs leading-relaxed";
     case "newspaper":
@@ -106,7 +106,7 @@ export const getPlainPreBlockClasses = (style: PreviewStyle): string => {
 export const getLinkClasses = (style: PreviewStyle): string => {
   switch (style) {
     case "standard":
-      return "inline-flex items-center gap-0.5 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-semibold underline underline-offset-4 decoration-2 decoration-indigo-300 hover:decoration-indigo-600 transition-colors cursor-pointer";
+      return "inline-flex items-center gap-0.5 text-[var(--theme-accent,#10b981)] hover:opacity-80 font-semibold underline underline-offset-4 transition-colors cursor-pointer";
     case "serif":
       return "inline-flex items-center gap-0.5 text-amber-800 dark:text-amber-400 hover:text-amber-950 dark:hover:text-amber-300 font-semibold underline underline-offset-4 decoration-1 decoration-amber-600/50 hover:decoration-amber-800 transition-colors cursor-pointer";
     case "newspaper":
@@ -130,13 +130,13 @@ export const getTableClasses = (style: PreviewStyle) => {
   switch (style) {
     case "standard":
       return {
-        wrapper: `${tableWrapper} border-slate-200 dark:border-slate-800`,
-        table: `${baseTable} bg-white dark:bg-slate-950`,
-        thead: `${headRow} bg-slate-50 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300`,
-        tbody: "divide-y divide-slate-100 dark:divide-slate-900",
-        tr: `${dataRow} border-slate-100 dark:border-slate-900 hover:bg-slate-50/50 dark:hover:bg-slate-900/30`,
-        th: `${headerCell} border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white`,
-        td: `${dataCell} border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300`,
+        wrapper: `${tableWrapper} border-[var(--theme-border,#141d30)]`,
+        table: `${baseTable} bg-[var(--theme-card,#101726)]`,
+        thead: `${headRow} bg-[var(--theme-bg,#070c18)] border-[var(--theme-border,#141d30)] text-[var(--theme-text,#f1f5f9)]`,
+        tbody: "divide-y divide-[var(--theme-border,#141d30)]",
+        tr: `${dataRow} border-[var(--theme-border,#141d30)] hover:bg-[var(--theme-card-hover,#162032)]`,
+        th: `${headerCell} border-[var(--theme-border,#141d30)] text-[var(--theme-text,#f1f5f9)]`,
+        td: `${dataCell} border-[var(--theme-border,#141d30)] text-[var(--theme-text,#f1f5f9)]`,
       };
     case "serif":
       return {

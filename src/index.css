@@ -33,7 +33,38 @@ body,
   overflow: hidden;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  background-color: var(--theme-bg, #09090b);
+  color: var(--theme-text, #f4f4f5);
 }
+
+/* Global Theme Variable Utility Classes (10 Core Design Tokens) */
+:root {
+  --theme-bg: #09090b;
+  --theme-sidebar: #121215;
+  --theme-card: #18181b;
+  --theme-card-hover: #27272a;
+  --theme-border: #27272a;
+  --theme-text: #f4f4f5;
+  --theme-text-muted: #a1a1aa;
+  --theme-accent: #6366f1;
+  --theme-accent-hover: #4f46e5;
+  --theme-accent-subtle: rgba(99, 102, 241, 0.15);
+}
+
+.bg-theme-bg { background-color: var(--theme-bg); }
+.bg-theme-sidebar { background-color: var(--theme-sidebar); }
+.bg-theme-card { background-color: var(--theme-card); }
+.bg-theme-card-hover:hover { background-color: var(--theme-card-hover); }
+.bg-theme-accent { background-color: var(--theme-accent); }
+.bg-theme-accent-hover:hover { background-color: var(--theme-accent-hover); }
+.bg-theme-accent-subtle { background-color: var(--theme-accent-subtle); }
+
+.border-theme-border { border-color: var(--theme-border); }
+.border-theme-accent { border-color: var(--theme-accent); }
+
+.text-theme-text { color: var(--theme-text); }
+.text-theme-muted { color: var(--theme-text-muted); }
+.text-theme-accent { color: var(--theme-accent); }
 
 /* Premium micro-animations */
 @keyframes fadeIn {

@@ -79,7 +79,7 @@ export default function ChatInput({
   const charCount = inputText.length;
 
   return (
-    <div className="p-3 sm:p-4 border-t border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/40 select-none">
+    <div className="p-3 sm:p-4 border-t border-[var(--theme-border,#141d30)] bg-[var(--theme-card,#101726)] text-[var(--theme-text,#f1f5f9)] select-none">
       {/* Hidden File Input */}
       {onUploadFiles && (
         <input
@@ -93,18 +93,18 @@ export default function ChatInput({
 
       <form
         onSubmit={handleFormSubmit}
-        className="max-w-4xl mx-auto flex flex-col gap-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 sm:px-4 sm:py-2.5 transition-all focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/25"
+        className="max-w-4xl mx-auto flex flex-col gap-2 bg-[var(--theme-bg,#070c18)] border border-[var(--theme-border,#141d30)] rounded-2xl p-2 sm:px-4 sm:py-2.5 transition-all focus-within:border-[var(--theme-accent,#10b981)]"
       >
         {/* Attached Files Bar */}
         {attachedFiles.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 pb-1 border-b border-slate-200/60 dark:border-slate-800/60">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold mr-1">
+          <div className="flex flex-wrap items-center gap-1.5 pb-1 border-b border-[var(--theme-border,#141d30)]">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--theme-text-muted,#94a3b8)] font-bold mr-1">
               Attached ({attachedFiles.length}):
             </span>
             {attachedFiles.map((fileName, idx) => (
               <div
                 key={idx}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-mono"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--theme-accent-subtle,rgba(16,185,129,0.15))] border border-[var(--theme-border,#141d30)] text-[var(--theme-accent,#10b981)] text-xs font-mono"
               >
                 <FileText size={12} className="shrink-0" />
                 <span className="truncate max-w-[140px] sm:max-w-[200px]">
@@ -114,7 +114,7 @@ export default function ChatInput({
                   <button
                     type="button"
                     onClick={() => onRemoveAttachedFile(fileName)}
-                    className="p-0.5 hover:bg-indigo-500/20 rounded-md text-indigo-400 hover:text-indigo-200 transition-colors cursor-pointer ml-0.5"
+                    className="p-0.5 hover:bg-[var(--theme-card-hover,#162032)] rounded-md text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] transition-colors cursor-pointer ml-0.5"
                     title="Remove attached file"
                   >
                     <X size={11} />
@@ -131,7 +131,7 @@ export default function ChatInput({
               type="button"
               onClick={handleAttachmentClick}
               disabled={isStreaming}
-              className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-900 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0"
+              className="p-1.5 hover:bg-[var(--theme-card-hover,#162032)] rounded-xl text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] transition-colors cursor-pointer shrink-0"
               title="Upload files to workspace"
             >
               <Paperclip size={14} className="stroke-[2.5px]" />
@@ -148,7 +148,7 @@ export default function ChatInput({
                 ? "Agent is busy evaluating workspace code and instructions..."
                 : "Send instruction to AI workspace..."
             }
-            className="flex-1 text-xs sm:text-sm bg-transparent border-0 outline-none focus:ring-0 focus:outline-none text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 font-sans"
+            className="flex-1 text-xs sm:text-sm bg-transparent border-0 outline-none focus:ring-0 focus:outline-none text-[var(--theme-text,#f1f5f9)] placeholder-[var(--theme-text-muted,#94a3b8)] font-sans"
           />
 
           <div className="flex items-center gap-1.5 shrink-0 select-none">
@@ -157,7 +157,7 @@ export default function ChatInput({
               type="button"
               onClick={() => setIsExpanded(true)}
               disabled={isStreaming}
-              className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-900 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-[var(--theme-card-hover,#162032)] rounded-xl text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] transition-colors cursor-pointer"
               title="Expand prompt editor (Multi-line mode)"
             >
               <Maximize2 size={13} className="stroke-[2.5px]" />
@@ -176,7 +176,7 @@ export default function ChatInput({
               <button
                 type="submit"
                 disabled={!inputText.trim() && attachedFiles.length === 0}
-                className="w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-25 transition-all cursor-pointer flex items-center justify-center shadow-xs active:scale-95"
+                className="w-8 h-8 rounded-full bg-[var(--theme-accent,#10b981)] hover:opacity-90 text-white disabled:opacity-25 transition-all cursor-pointer flex items-center justify-center shadow-xs active:scale-95"
               >
                 <Send size={11} className="stroke-[2.5px] ml-0.5" />
               </button>

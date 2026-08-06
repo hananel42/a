@@ -16,40 +16,35 @@ export default function PrintStyle({ previewStyle }: PrintStyleProps) {
   return (
     <style>{`
       @media print {
+        @page {
+          margin: 15mm;
+          size: auto;
+        }
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
         body {
-          background-color: ${
-            previewStyle === "standard"
-              ? "#ffffff"
-              : previewStyle === "serif"
-                ? "#fcfbf7"
-                : previewStyle === "newspaper"
-                  ? "#f5ebd2"
-                  : previewStyle === "nord"
-                    ? "#2e3440"
-                    : "#060a07"
-          } !important;
-          color: ${
-            previewStyle === "standard"
-              ? "#1e293b"
-              : previewStyle === "serif"
-                ? "#2c2b29"
-                : previewStyle === "newspaper"
-                  ? "#121212"
-                  : previewStyle === "nord"
-                    ? "#eceff4"
-                    : "#39ff14"
-          } !important;
+          background-color: #ffffff !important;
+          color: #18181b !important;
           padding: 0 !important;
           margin: 0 !important;
         }
-        #app-workspace,
+        /* Hide all UI toolbars, sidebars, headers, editor panels, buttons, and popups */
+        header,
+        nav,
+        aside,
+        button,
+        .no-print,
         .sidebar-panel,
         .top-header-bar,
         .workspace-toolbar,
+        .file-tabs-bar,
         .resizer-divider,
         .cheatsheet-sidebar,
         .editor-container,
-        .toast-container {
+        .toast-container,
+        .help-drawer {
           display: none !important;
         }
         .viewer-container {
@@ -66,30 +61,10 @@ export default function PrintStyle({ previewStyle }: PrintStyleProps) {
           width: 100% !important;
           border: ${previewStyle === "newspaper" ? "4px double #d2c29d" : "none"} !important;
           box-shadow: none !important;
-          padding: 2rem !important;
+          padding: 0 !important;
           margin: 0 !important;
-          background-color: ${
-            previewStyle === "standard"
-              ? "#ffffff"
-              : previewStyle === "serif"
-                ? "#fcfbf7"
-                : previewStyle === "newspaper"
-                  ? "#f5ebd2"
-                  : previewStyle === "nord"
-                    ? "#2e3440"
-                    : "#060a07"
-          } !important;
-          color: ${
-            previewStyle === "standard"
-              ? "#1e293b"
-              : previewStyle === "serif"
-                ? "#2c2b29"
-                : previewStyle === "newspaper"
-                  ? "#121212"
-                  : previewStyle === "nord"
-                    ? "#eceff4"
-                    : "#39ff14"
-          } !important;
+          background-color: transparent !important;
+          color: inherit !important;
         }
         .rendered-markdown-card h1,
         .rendered-markdown-card h2,

@@ -30,12 +30,28 @@ export function useWorkspace(
     const saved = loadVirtualWorkspace();
     if (saved.length > 0) {
       setItems(saved);
-      const activeExists = saved.some(
-        (item) => item.id === activeItemId && item.type === "file",
-      );
-      if (!activeExists) {
-        const firstFile = saved.find((item) => item.type === "file");
-        if (firstFile) setActiveItemId(firstFile.id);
+      let savedOpenIds: string[] = [];
+      try {
+        const raw = localStorage.getItem("openFileIds");
+        if (raw !== null) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            savedOpenIds = parsed;
+          }
+        }
+      } catch (e) {}
+
+      if (savedOpenIds.length > 0) {
+        const validOpen = savedOpenIds.filter((id) =>
+          saved.some((item) => item.id === id && item.type === "file"),
+        );
+        if (validOpen.length > 0) {
+          setActiveItemId(validOpen[0]);
+        } else {
+          setActiveItemId("");
+        }
+      } else {
+        setActiveItemId("");
       }
     } else {
       const defaultItems: WorkspaceItem[] = [
@@ -99,6 +115,15 @@ export function useWorkspace(
           : item,
       ),
     );
+  };
+
+  const collapseAllFolders = () => {
+    persistWorkspace((prev) =>
+      prev.map((item) =>
+        item.type === "folder" ? { ...item, isExpanded: false } : item,
+      ),
+    );
+    showNotification("Collapsed all folders in tree.", "success");
   };
 
   const createFile = async (
@@ -205,14 +230,6 @@ export function useWorkspace(
     const itemToDelete = items.find((i) => i.id === id);
     if (!itemToDelete) return;
 
-    if (
-      items.filter((i) => i.type === "file").length <= 1 &&
-      itemToDelete.type === "file"
-    ) {
-      showNotification("Keep at least one file in your workspace!", "error");
-      return;
-    }
-
     if (localFolder && physicalRootHandleRef.current) {
       try {
         await deletePhysicalItem(
@@ -233,15 +250,26 @@ export function useWorkspace(
       return [pId, ...children.flatMap((c) => getChildIds(c.id, currentItems))];
     };
 
-    persistWorkspace((prev) => {
-      const idsToRemove =
-        itemToDelete.type === "folder" ? getChildIds(id, prev) : [id];
-      const updated = prev.filter((item) => !idsToRemove.includes(item.id));
+    const idsToRemove =
+      itemToDelete.type === "folder" ? getChildIds(id, items) : [id];
+
+    // Remove deleted items from open tabs and update active tab
+    setOpenFileIds((prevOpen) => {
+      const nextOpen = prevOpen.filter((openId) => !idsToRemove.includes(openId));
       if (idsToRemove.includes(activeItemId)) {
-        const remainingFiles = updated.filter((item) => item.type === "file");
-        if (remainingFiles.length > 0) setActiveItemId(remainingFiles[0].id);
+        if (nextOpen.length > 0) {
+          const removedIndex = prevOpen.indexOf(activeItemId);
+          const nextIndex = Math.max(0, Math.min(removedIndex - 1, nextOpen.length - 1));
+          setActiveItemId(nextOpen[nextIndex]);
+        } else {
+          setActiveItemId("");
+        }
       }
-      return updated;
+      return nextOpen;
+    });
+
+    persistWorkspace((prev) => {
+      return prev.filter((item) => !idsToRemove.includes(item.id));
     });
   };
 
@@ -380,17 +408,82 @@ export function useWorkspace(
     });
   };
 
-  const activeFile = items.find(
-    (i) => i.id === activeItemId && i.type === "file",
-  ) || {
-    id: "welcome",
-    name: "welcome.md",
-    type: "file" as const,
-    parentId: null,
-    content: templates[0].content,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+  const [openFileIds, setOpenFileIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("openFileIds");
+      if (saved !== null) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load openFileIds from localStorage", e);
+    }
+    return ["welcome"];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("openFileIds", JSON.stringify(openFileIds));
+  }, [openFileIds]);
+
+  // Keep openFileIds in sync with selected file
+  useEffect(() => {
+    if (activeItemId) {
+      const activeItem = items.find((i) => i.id === activeItemId && i.type === "file");
+      if (activeItem) {
+        setOpenFileIds((prev) => {
+          if (prev.includes(activeItemId)) return prev;
+          return [...prev, activeItemId];
+        });
+      }
+    }
+  }, [activeItemId, items]);
+
+  // Keep openFileIds clean when files are deleted
+  useEffect(() => {
+    if (items.length > 0) {
+      setOpenFileIds((prev) => {
+        const filtered = prev.filter((id) =>
+          items.some((item) => item.id === id && item.type === "file")
+        );
+        if (filtered.length !== prev.length) {
+          if (activeItemId && !items.some((item) => item.id === activeItemId && item.type === "file")) {
+            if (filtered.length > 0) {
+              setActiveItemId(filtered[0]);
+            } else {
+              setActiveItemId("");
+            }
+          }
+          return filtered;
+        }
+        return prev;
+      });
+    }
+  }, [items, activeItemId]);
+
+  const closeTab = (idToClose: string) => {
+    setOpenFileIds((prev) => {
+      const index = prev.indexOf(idToClose);
+      if (index === -1) return prev;
+      
+      const nextOpen = prev.filter((id) => id !== idToClose);
+      
+      if (activeItemId === idToClose) {
+        if (nextOpen.length > 0) {
+          const nextActiveIndex = Math.max(0, index - 1);
+          setActiveItemId(nextOpen[nextActiveIndex]);
+        } else {
+          setActiveItemId("");
+        }
+      }
+      return nextOpen;
+    });
   };
+
+  const activeFile = (activeItemId && openFileIds.includes(activeItemId))
+    ? items.find((i) => i.id === activeItemId && i.type === "file") || null
+    : null;
 
   return {
     items,
@@ -409,5 +502,9 @@ export function useWorkspace(
     processUploadedFiles,
     persistWorkspace,
     moveItem,
+    collapseAllFolders,
+    openFileIds,
+    closeTab,
+    setOpenFileIds,
   };
 }

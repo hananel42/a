@@ -335,7 +335,7 @@ export default function CodeFileEditor({
   return (
     <div
       onKeyDown={handleKeyDown}
-      className="flex flex-col h-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden font-mono text-sm relative"
+      className="flex flex-col h-full bg-[var(--theme-card,#101726)] text-[var(--theme-text,#f1f5f9)] border border-[var(--theme-border,#141d30)] rounded-lg overflow-hidden font-mono text-sm relative"
     >
       {/* Inline styles to guarantee no wrapping on long lines and perfect styling */}
       <style>{`
@@ -384,7 +384,7 @@ export default function CodeFileEditor({
         <div className="flex min-h-full min-w-max">
           {/* Line numbers gutter: Sticky so line numbers stay visible when scrolling horizontally */}
           <div
-            className="sticky left-0 z-10 text-right py-4 pr-3 pl-4 text-slate-400 dark:text-slate-500 select-none border-r border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex-shrink-0"
+            className="sticky left-0 z-10 text-right py-4 pr-3 pl-4 text-[var(--theme-text-muted,#94a3b8)] select-none border-r border-[var(--theme-border,#141d30)] bg-[var(--theme-sidebar,#0b101f)] flex-shrink-0"
             style={{
               lineHeight: "20px",
             }}
@@ -424,9 +424,9 @@ export default function CodeFileEditor({
       </div>
 
       {/* Footer / Toolbar */}
-      <div className="flex items-center justify-between p-2 px-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs text-slate-500 select-none">
+      <div className="flex items-center justify-between p-2 px-4 border-t border-[var(--theme-border,#141d30)] bg-[var(--theme-sidebar,#0b101f)] text-xs text-[var(--theme-text-muted,#94a3b8)] select-none">
         <div className="flex items-center gap-3">
-          <span className="uppercase font-semibold tracking-wider text-slate-600 dark:text-slate-400">
+          <span className="uppercase font-semibold tracking-wider text-[var(--theme-text-muted,#94a3b8)]">
             {language}
           </span>
           {isPython && (

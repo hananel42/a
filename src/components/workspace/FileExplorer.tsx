@@ -24,9 +24,11 @@ import {
   Check,
   MoreVertical,
   Move,
+  FolderMinus,
 } from "lucide-react";
 import { WorkspaceItem, LocalFolderConnection } from "../../types/workspace";
 import FileTreeItem, { getFileIcon } from "./FileTreeItem";
+import FileSearchInput from "./FileSearchInput";
 
 interface FileExplorerProps {
   items: WorkspaceItem[];
@@ -42,6 +44,7 @@ interface FileExplorerProps {
   disconnectLocalFolder: () => void;
   processUploadedFiles: (files: File[], parentId: string | null) => void;
   moveItem: (itemId: string, targetParentId: string | null) => void;
+  collapseAllFolders: () => void;
 }
 
 interface CompactedItem {
@@ -50,6 +53,25 @@ interface CompactedItem {
   lastItem: WorkspaceItem;
   displayName: string;
   type: "file" | "folder";
+}
+
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  if (!query) return <span>{text}</span>;
+  const escaped = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  return (
+    <span>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-sky-500/30 text-sky-200 px-0.5 rounded font-semibold">
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </span>
+  );
 }
 
 export default function FileExplorer({
@@ -66,8 +88,18 @@ export default function FileExplorer({
   disconnectLocalFolder,
   processUploadedFiles,
   moveItem,
+  collapseAllFolders,
 }: FileExplorerProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Compact Folders option (defaults to true)
+  const [compactFoldersEnabled, setCompactFoldersEnabled] = useState<boolean>(() => {
+    const saved = localStorage.getItem("compactFoldersEnabled");
+    return saved !== "false";
+  });
 
   // Persistence for layout modes
   const [explorerMode, setExplorerMode] = useState<"tree" | "compact">(
@@ -189,6 +221,21 @@ export default function FileExplorer({
   const getCompactedItems = (parentId: string | null): CompactedItem[] => {
     const directChildren = items.filter((item) => item.parentId === parentId);
 
+    if (!compactFoldersEnabled) {
+      return directChildren.map((child) => ({
+        chain: [child],
+        firstItem: child,
+        lastItem: child,
+        displayName: child.name,
+        type: child.type,
+      })).sort((a, b) => {
+        if (a.type !== b.type) {
+          return a.type === "folder" ? -1 : 1;
+        }
+        return a.displayName.localeCompare(b.displayName);
+      });
+    }
+
     const compacted = directChildren.map((child) => {
       const chain: WorkspaceItem[] = [child];
       if (child.type === "file") {
@@ -273,10 +320,37 @@ export default function FileExplorer({
     }
   };
 
+  // Search visibility utility
+  const isItemVisible = (item: WorkspaceItem): boolean => {
+    if (!searchQuery) return true;
+
+    const query = searchQuery.toLowerCase();
+    
+    // Direct match
+    if (item.name.toLowerCase().includes(query)) {
+      return true;
+    }
+
+    // Is parent of any direct match?
+    if (item.type === "folder") {
+      const checkDescendant = (id: string): boolean => {
+        const children = items.filter((i) => i.parentId === id);
+        return children.some((c) => {
+          if (c.name.toLowerCase().includes(query)) return true;
+          if (c.type === "folder") return checkDescendant(c.id);
+          return false;
+        });
+      };
+      return checkDescendant(item.id);
+    }
+
+    return false;
+  };
+
   // Recursive Tree Render
   const renderTree = (parentId: string | null) => {
     const sorted = items
-      .filter((item) => item.parentId === parentId)
+      .filter((item) => item.parentId === parentId && isItemVisible(item))
       .sort((a, b) =>
         a.type !== b.type
           ? a.type === "folder"
@@ -316,24 +390,28 @@ export default function FileExplorer({
         moveItem={moveItem}
         processUploadedFiles={processUploadedFiles}
         setIsDraggingInternal={setIsDraggingInternal}
+        searchQuery={searchQuery}
       />
     ));
   };
 
   const breadcrumbs = getBreadcrumbs();
-  const compactedItems = getCompactedItems(currentNavFolderId);
+  const compactedItems = getCompactedItems(currentNavFolderId).filter((item) => {
+    if (!searchQuery) return true;
+    return item.displayName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   return (
     <div
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className="flex flex-col h-full bg-[#070b14] border-r border-[#121927] shrink-0 w-60 select-none relative font-sans text-slate-300"
+      className="flex flex-col h-full bg-[var(--theme-sidebar,#070b14)] border-r border-[var(--theme-border,#121927)] shrink-0 w-60 select-none relative font-sans text-[var(--theme-text,#cbd5e1)]"
     >
       {/* Drop overlay */}
       {isDraggingOver && (
         isDraggingInternal ? (
-          <div className="absolute inset-0 z-50 bg-[#060a13]/95 backdrop-blur-xs border-2 border-dashed border-emerald-500 m-2 rounded-xl flex flex-col items-center justify-center gap-2 pointer-events-none transition-all duration-200">
+          <div className="absolute inset-0 z-50 bg-slate-900/90 dark:bg-[#060a13]/95 backdrop-blur-xs border-2 border-dashed border-emerald-500 m-2 rounded-xl flex flex-col items-center justify-center gap-2 pointer-events-none transition-all duration-200">
             <Move size={28} className="text-emerald-400 animate-bounce" />
             <span className="text-xs font-semibold text-emerald-200">Move here</span>
             <span className="text-[10px] text-slate-500 font-mono">
@@ -341,7 +419,7 @@ export default function FileExplorer({
             </span>
           </div>
         ) : (
-          <div className="absolute inset-0 z-50 bg-[#060a13]/95 backdrop-blur-xs border-2 border-dashed border-sky-500 m-2 rounded-xl flex flex-col items-center justify-center gap-2 pointer-events-none transition-all duration-200">
+          <div className="absolute inset-0 z-50 bg-slate-900/90 dark:bg-[#060a13]/95 backdrop-blur-xs border-2 border-dashed border-sky-500 m-2 rounded-xl flex flex-col items-center justify-center gap-2 pointer-events-none transition-all duration-200">
             <FileUp size={28} className="text-sky-400 animate-bounce" />
             <span className="text-xs font-semibold text-sky-200">Drop files to upload</span>
             <span className="text-[10px] text-slate-500 font-mono">
@@ -352,10 +430,10 @@ export default function FileExplorer({
       )}
 
       {/* Header section with connection & title */}
-      <div className="p-3 border-b border-[#111927] flex flex-col gap-2">
+      <div className="p-3 border-b border-slate-200 dark:border-[#111927] flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="font-bold text-white text-[11px] uppercase tracking-wider">
+            <span className="font-bold text-slate-900 dark:text-white text-[11px] uppercase tracking-wider">
               {localFolder ? "Synced Local" : "Workspace"}
             </span>
             <span className="text-[9px] text-slate-500 font-mono truncate max-w-[120px]">
@@ -364,10 +442,20 @@ export default function FileExplorer({
           </div>
 
           <div className="flex items-center gap-1.5">
+            {explorerMode === "tree" && (
+              <button
+                onClick={collapseAllFolders}
+                className="p-1 rounded bg-[var(--theme-card,#101726)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] hover:bg-[var(--theme-card-hover,#1a2438)] transition-all cursor-pointer border border-[var(--theme-border,#141d30)]"
+                title="Collapse all folders"
+              >
+                <FolderMinus size={12} />
+              </button>
+            )}
+
             {localFolder ? (
               <button
                 onClick={disconnectLocalFolder}
-                className="p-1 rounded bg-rose-950/20 text-rose-400 hover:bg-rose-950/40 transition-all cursor-pointer"
+                className="p-1 rounded bg-rose-950/20 text-rose-400 hover:bg-rose-950/40 transition-all cursor-pointer border border-rose-900/30"
                 title="Disconnect local folder"
               >
                 <Unlink size={12} />
@@ -375,7 +463,7 @@ export default function FileExplorer({
             ) : (
               <button
                 onClick={connectLocalFolder}
-                className="p-1 rounded bg-[#101726] text-sky-400 hover:bg-[#151f32] transition-all cursor-pointer border border-[#1b263b]"
+                className="p-1 rounded bg-[var(--theme-card,#101726)] text-[var(--theme-accent,#6366f1)] hover:bg-[var(--theme-card-hover,#1a2438)] transition-all cursor-pointer border border-[var(--theme-border,#141d30)]"
                 title="Connect local folder"
               >
                 <Link size={12} />
@@ -389,10 +477,15 @@ export default function FileExplorer({
           <button
             onClick={() => {
               setInlineCreateType("file");
-              setInlineCreateParentId(explorerMode === "compact" ? currentNavFolderId : null);
+              const targetParent = explorerMode === "compact"
+                ? currentNavFolderId
+                : (activeItemId && items.find(i => i.id === activeItemId)?.type === "folder"
+                    ? activeItemId
+                    : (activeItemId && items.find(i => i.id === activeItemId)?.parentId) || null);
+              setInlineCreateParentId(targetParent);
               setInlineCreateValue("");
             }}
-            className="flex-1 flex items-center justify-center gap-1 h-7 rounded bg-sky-600 hover:bg-sky-500 text-white font-semibold text-[11px] transition-colors cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-1 h-7 rounded bg-[var(--theme-accent,#6366f1)] hover:opacity-90 text-white font-semibold text-[11px] transition-all cursor-pointer shadow-xs"
           >
             <Plus size={12} />
             <span>New File</span>
@@ -400,40 +493,73 @@ export default function FileExplorer({
           <button
             onClick={() => {
               setInlineCreateType("folder");
-              setInlineCreateParentId(explorerMode === "compact" ? currentNavFolderId : null);
+              const targetParent = explorerMode === "compact"
+                ? currentNavFolderId
+                : (activeItemId && items.find(i => i.id === activeItemId)?.type === "folder"
+                    ? activeItemId
+                    : (activeItemId && items.find(i => i.id === activeItemId)?.parentId) || null);
+              setInlineCreateParentId(targetParent);
               setInlineCreateValue("");
             }}
-            className="flex-1 flex items-center justify-center gap-1 h-7 rounded bg-[#101726] border border-[#1b263b] hover:bg-[#151f32] text-slate-300 font-semibold text-[11px] transition-colors cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-1 h-7 rounded bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] hover:bg-[var(--theme-card-hover,#1a2438)] text-[var(--theme-text,#f1f5f9)] font-semibold text-[11px] transition-all cursor-pointer"
           >
             <FolderPlus size={12} />
             <span>Folder</span>
           </button>
         </div>
 
+        {/* Real-time file filter/search */}
+        <FileSearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Filter workspace files..."
+        />
+
         {/* Layout toggle mode */}
-        <div className="flex items-center justify-between bg-[#0b101f] rounded p-0.5 border border-[#141d30]">
-          <button
-            onClick={() => handleToggleMode("tree")}
-            className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] font-medium transition-all ${
-              explorerMode === "tree"
-                ? "bg-sky-500/10 text-sky-400 font-semibold"
-                : "text-slate-500 hover:text-slate-300"
-            }`}
-          >
-            <FolderTree size={11} />
-            <span>Classic Tree</span>
-          </button>
-          <button
-            onClick={() => handleToggleMode("compact")}
-            className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] font-medium transition-all ${
-              explorerMode === "compact"
-                ? "bg-sky-500/10 text-sky-400 font-semibold"
-                : "text-slate-500 hover:text-slate-300"
-            }`}
-          >
-            <Compass size={11} />
-            <span>Interactive Nav</span>
-          </button>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between bg-[var(--theme-bg,#070c18)] rounded p-0.5 border border-[var(--theme-border,#141d30)]">
+            <button
+              onClick={() => handleToggleMode("tree")}
+              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] font-medium transition-all ${
+                explorerMode === "tree"
+                  ? "bg-[var(--theme-accent-subtle,rgba(99,102,241,0.15))] text-[var(--theme-accent,#6366f1)] font-semibold"
+                  : "text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]"
+              }`}
+            >
+              <FolderTree size={11} />
+              <span>Classic Tree</span>
+            </button>
+            <button
+              onClick={() => handleToggleMode("compact")}
+              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded text-[10px] font-medium transition-all ${
+                explorerMode === "compact"
+                  ? "bg-[var(--theme-accent-subtle,rgba(99,102,241,0.15))] text-[var(--theme-accent,#6366f1)] font-semibold"
+                  : "text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]"
+              }`}
+            >
+              <Compass size={11} />
+              <span>Interactive Nav</span>
+            </button>
+          </div>
+
+          {/* Compact Folders Settings Toggle Switch */}
+          <div className="flex items-center justify-between px-1 text-[10px] text-[var(--theme-text-muted,#94a3b8)]">
+            <span>Compact empty folders</span>
+            <button
+              onClick={() => {
+                const nextVal = !compactFoldersEnabled;
+                setCompactFoldersEnabled(nextVal);
+                localStorage.setItem("compactFoldersEnabled", String(nextVal));
+              }}
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded border transition-all cursor-pointer text-[9px] ${
+                compactFoldersEnabled
+                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 font-medium"
+                  : "bg-[var(--theme-card,#101726)] border-[var(--theme-border,#141d30)] text-[var(--theme-text-muted,#94a3b8)]"
+              }`}
+            >
+              <span>{compactFoldersEnabled ? "Enabled" : "Disabled"}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -646,7 +772,7 @@ export default function FileExplorer({
                                       : `Open file: ${chainItem.name}`
                                   }
                                 >
-                                  {chainItem.name}
+                                  <HighlightMatch text={chainItem.name} query={searchQuery} />
                                 </span>
                               </React.Fragment>
                             );

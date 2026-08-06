@@ -29,7 +29,7 @@ export function TableDialog({ isOpen, onClose, onSubmit }: TableDialogProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-wider mb-1.5">
               Rows
             </label>
             <input
@@ -40,11 +40,11 @@ export function TableDialog({ isOpen, onClose, onSubmit }: TableDialogProps) {
               onChange={(e) =>
                 setRows(Math.max(1, parseInt(e.target.value) || 1))
               }
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-400 transition-colors"
+              className="w-full px-3.5 py-2 rounded-xl border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] text-sm focus:outline-none focus:border-[var(--theme-accent,#6366f1)] transition-colors"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-wider mb-1.5">
               Columns
             </label>
             <input
@@ -55,17 +55,17 @@ export function TableDialog({ isOpen, onClose, onSubmit }: TableDialogProps) {
               onChange={(e) =>
                 setCols(Math.max(1, parseInt(e.target.value) || 1))
               }
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-400 transition-colors"
+              className="w-full px-3.5 py-2 rounded-xl border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] text-sm focus:outline-none focus:border-[var(--theme-accent,#6366f1)] transition-colors"
             />
           </div>
         </div>
 
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800/50">
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-[var(--theme-bg,#070c18)] border border-[var(--theme-border,#141d30)]">
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+            <span className="text-sm font-medium text-[var(--theme-text,#f1f5f9)]">
               Include Header Row
             </span>
-            <span className="text-xs text-slate-400 mt-0.5">
+            <span className="text-xs text-[var(--theme-text-muted,#94a3b8)] mt-0.5">
               Format top row as table columns header
             </span>
           </div>
@@ -74,8 +74,8 @@ export function TableDialog({ isOpen, onClose, onSubmit }: TableDialogProps) {
             role="switch"
             aria-checked={headers}
             onClick={() => setHeaders(!headers)}
-            className={`w-11 h-6 rounded-full transition-colors relative inline-flex items-center shrink-0 p-0.5 cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500/20 ${
-              headers ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-700"
+            className={`w-11 h-6 rounded-full transition-colors relative inline-flex items-center shrink-0 p-0.5 cursor-pointer outline-none focus:ring-2 focus:ring-[var(--theme-accent,#6366f1)]/20 ${
+              headers ? "bg-[var(--theme-accent,#6366f1)]" : "bg-[var(--theme-border,#141d30)]"
             }`}
           >
             <span
@@ -90,15 +90,15 @@ export function TableDialog({ isOpen, onClose, onSubmit }: TableDialogProps) {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-semibold transition-colors cursor-pointer"
+            className="flex-1 py-2.5 rounded-xl border border-[var(--theme-border,#141d30)] hover:bg-[var(--theme-card-hover,#1a2438)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] text-sm font-semibold transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors shadow shadow-indigo-600/10 hover:shadow-md cursor-pointer"
+            className="flex-1 py-2.5 rounded-xl bg-[var(--theme-accent,#6366f1)] hover:opacity-90 text-white text-sm font-semibold transition-colors shadow-xs cursor-pointer"
           >
-            Insert Table
+            Generate Table
           </button>
         </div>
       </form>

@@ -53,7 +53,7 @@ export default function MarkdownFileEditor({
   return (
     <div
       ref={containerRef}
-      className="flex-1 flex min-h-0 relative bg-slate-100 dark:bg-slate-950 select-none"
+      className="flex-1 flex min-h-0 relative bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] select-none"
     >
       {/* A. TEXT EDITOR CONTAINER (Left half) */}
       {(mode === "edit" || mode === "split") && (
@@ -62,7 +62,7 @@ export default function MarkdownFileEditor({
             width: mode === "split" ? `${splitRatio}%` : "100%",
             flex: mode === "split" ? "none" : "1",
           }}
-          className="h-full flex flex-col min-w-0 bg-white dark:bg-slate-950 select-text"
+          className="h-full flex flex-col min-w-0 bg-[var(--theme-card,#101726)] text-[var(--theme-text,#f1f5f9)] select-text"
         >
           <MarkdownEditor
             content={content}
@@ -79,9 +79,9 @@ export default function MarkdownFileEditor({
       {mode === "split" && (
         <div
           onMouseDown={startResizing}
-          className="w-1.5 cursor-col-resize hover:bg-indigo-500 bg-slate-200 dark:bg-slate-800 transition-colors group flex items-center justify-center z-10"
+          className="w-1.5 cursor-col-resize hover:bg-[var(--theme-accent,#10b981)] bg-[var(--theme-border,#141d30)] transition-colors group flex items-center justify-center z-10"
         >
-          <div className="w-0.5 h-12 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-indigo-500 transition-colors" />
+          <div className="w-0.5 h-12 rounded-full bg-[var(--theme-text-muted,#94a3b8)] group-hover:bg-[var(--theme-accent,#10b981)] transition-colors" />
         </div>
       )}
 

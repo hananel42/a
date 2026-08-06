@@ -29,21 +29,21 @@ export default function UnknownFileViewer({
   const extension = fileName.split(".").pop()?.toUpperCase() || "UNKNOWN";
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-8 select-none">
-      <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800/80 p-8 text-center shadow-xl animate-fade-in">
+    <div className="flex-1 flex flex-col items-center justify-center bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] p-8 select-none">
+      <div className="max-w-md w-full bg-[var(--theme-card,#101726)] rounded-3xl border border-[var(--theme-border,#141d30)] p-8 text-center shadow-xl animate-fade-in">
         {/* Warning Icon Badge */}
-        <div className="inline-flex p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 dark:text-amber-400 border border-amber-100 dark:border-amber-900/40 mb-6">
+        <div className="inline-flex p-4 rounded-2xl bg-[var(--theme-accent-subtle,rgba(16,185,129,0.15))] text-[var(--theme-accent,#10b981)] border border-[var(--theme-border,#141d30)] mb-6">
           <FileWarning size={36} />
         </div>
 
-        <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white mb-2">
+        <h3 className="text-base sm:text-lg font-bold text-[var(--theme-text,#f1f5f9)] mb-2">
           Unrecognized File Format
         </h3>
-        <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-500 mb-6 max-w-sm mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm text-[var(--theme-text-muted,#94a3b8)] mb-6 max-w-sm mx-auto leading-relaxed">
           We don't recognize the{" "}
-          <strong className="text-amber-500 font-semibold">{extension}</strong>{" "}
+          <strong className="text-[var(--theme-accent,#10b981)] font-semibold">{extension}</strong>{" "}
           extension of{" "}
-          <strong className="text-slate-600 dark:text-slate-300 font-mono break-all">
+          <strong className="text-[var(--theme-text,#f1f5f9)] font-mono break-all">
             {fileName}
           </strong>
           .{fileSize && ` (Size: ${fileSize})`}
@@ -53,7 +53,7 @@ export default function UnknownFileViewer({
         <div className="space-y-2">
           <button
             onClick={onOpenAsText}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-sm hover:shadow-indigo-600/10 transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[var(--theme-accent,#10b981)] hover:opacity-90 text-white text-xs sm:text-sm font-semibold shadow-sm transition-all cursor-pointer"
           >
             <Eye size={15} />
             <span>Open as Plain Text anyway</span>
@@ -61,7 +61,7 @@ export default function UnknownFileViewer({
 
           <button
             onClick={onDownload}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[var(--theme-border,#141d30)] hover:bg-[var(--theme-card-hover,#162032)] text-[var(--theme-text,#f1f5f9)] text-xs sm:text-sm font-semibold transition-all cursor-pointer"
           >
             <Download size={14} />
             <span>Download File</span>

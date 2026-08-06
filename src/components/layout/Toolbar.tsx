@@ -42,6 +42,7 @@ interface ToolbarProps {
   setPreviewStyle: (
     style: "standard" | "serif" | "newspaper" | "nord" | "tech",
   ) => void;
+  onExportPDF?: () => void;
 }
 
 /**
@@ -56,6 +57,7 @@ export default function Toolbar({
   charCount,
   previewStyle,
   setPreviewStyle,
+  onExportPDF,
 }: ToolbarProps) {
   const formatButtons = [
     {
@@ -182,15 +184,15 @@ export default function Toolbar({
   ];
 
   return (
-    <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-4 py-2 gap-3.5 select-none shrink-0">
+    <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between border-b border-[var(--theme-border,#141d30)] bg-[var(--theme-card,#101726)] text-[var(--theme-text,#f1f5f9)] px-4 py-2 gap-3.5 select-none shrink-0">
       {/* Editor layout formatting buttons */}
       <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
         {formatButtons.map((group, gIdx) => (
           <React.Fragment key={group.group}>
             {gIdx > 0 && (
-              <div className="h-5 w-px bg-slate-200 dark:bg-slate-800 mx-1 self-center hidden sm:block" />
+              <div className="h-5 w-px bg-[var(--theme-border,#141d30)] mx-1 self-center hidden sm:block" />
             )}
-            <div className="flex items-center gap-1 bg-white dark:bg-slate-950 p-1 border border-slate-200/60 dark:border-slate-800/60 rounded-xl shadow-sm">
+            <div className="flex items-center gap-1 bg-[var(--theme-bg,#070c18)] p-1 border border-[var(--theme-border,#141d30)] rounded-xl shadow-xs">
               {group.items.map((btn) => (
                 <button
                   key={btn.id}
@@ -198,7 +200,7 @@ export default function Toolbar({
                   onClick={btn.handler}
                   title={btn.tooltip}
                   disabled={mode === "preview"}
-                  className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 disabled:opacity-30 disabled:pointer-events-none transition-colors duration-150 cursor-pointer"
+                  className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-[var(--theme-accent-subtle,rgba(16,185,129,0.15))] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-accent,#10b981)] disabled:opacity-30 disabled:pointer-events-none transition-colors duration-150 cursor-pointer"
                 >
                   {btn.icon}
                 </button>
@@ -211,16 +213,16 @@ export default function Toolbar({
       {/* Screen view mode toggles and stats counters */}
       <div className="flex flex-wrap items-center justify-between md:justify-end gap-3.5">
         {/* Statistics info bar */}
-        <div className="hidden lg:flex items-center gap-3.5 text-xs text-slate-400 font-mono border-r border-slate-200 dark:border-slate-800 pr-4">
+        <div className="hidden lg:flex items-center gap-3.5 text-xs text-[var(--theme-text-muted,#94a3b8)] font-mono border-r border-[var(--theme-border,#141d30)] pr-4">
           <div className="flex gap-1">
-            <span className="text-slate-600 dark:text-slate-500">words:</span>
-            <span className="font-semibold text-slate-800 dark:text-slate-200">
+            <span className="opacity-70">words:</span>
+            <span className="font-semibold text-[var(--theme-text,#f1f5f9)]">
               {wordCount}
             </span>
           </div>
           <div className="flex gap-1">
-            <span className="text-slate-600 dark:text-slate-500">chars:</span>
-            <span className="font-semibold text-slate-800 dark:text-slate-200">
+            <span className="opacity-70">chars:</span>
+            <span className="font-semibold text-[var(--theme-text,#f1f5f9)]">
               {charCount}
             </span>
           </div>
@@ -228,13 +230,13 @@ export default function Toolbar({
 
         {/* Minimal Preview Theme Selector dropdown */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider hidden xs:inline">
+          <span className="text-[10px] font-bold text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-wider hidden xs:inline">
             Style:
           </span>
           <select
             value={previewStyle}
             onChange={(e) => setPreviewStyle(e.target.value as any)}
-            className="text-xs font-semibold bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 rounded-xl px-2.5 py-1.5 focus:outline-none cursor-pointer focus:ring-1 focus:ring-indigo-500/50 shadow-xs"
+            className="text-xs font-semibold bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] border border-[var(--theme-border,#141d30)] rounded-xl px-2.5 py-1.5 focus:outline-none cursor-pointer focus:ring-1 focus:ring-[var(--theme-accent,#10b981)] shadow-xs"
             title="Choose Preview Typography Theme"
           >
             <option value="standard">Standard Sans</option>
@@ -246,22 +248,22 @@ export default function Toolbar({
         </div>
 
         {/* Display modes select segment toggler */}
-        <div className="flex bg-slate-200/75 dark:bg-slate-950/70 p-1 border border-slate-200/40 dark:border-slate-800/40 rounded-xl gap-0.5">
+        <div className="flex bg-[var(--theme-bg,#070c18)] p-1 border border-[var(--theme-border,#141d30)] rounded-xl gap-0.5">
           <button
             onClick={() => setMode("edit")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${mode === "edit" ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"}`}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${mode === "edit" ? "bg-[var(--theme-card,#101726)] text-[var(--theme-accent,#10b981)] shadow-xs" : "text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]"}`}
           >
             Editor Only
           </button>
           <button
             onClick={() => setMode("split")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${mode === "split" ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"}`}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${mode === "split" ? "bg-[var(--theme-card,#101726)] text-[var(--theme-accent,#10b981)] shadow-xs" : "text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]"}`}
           >
             Split View
           </button>
           <button
             onClick={() => setMode("preview")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${mode === "preview" ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"}`}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${mode === "preview" ? "bg-[var(--theme-card,#101726)] text-[var(--theme-accent,#10b981)] shadow-xs" : "text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]"}`}
           >
             Preview Only
           </button>

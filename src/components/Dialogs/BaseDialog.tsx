@@ -19,20 +19,20 @@ export default function BaseDialog({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100"
+        className="bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] text-[var(--theme-text,#f1f5f9)] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50">
-          <div className="flex items-center gap-2.5 text-slate-800 dark:text-slate-100 font-semibold text-base">
-            <span className="text-indigo-600 dark:text-indigo-400">{icon}</span>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)]">
+          <div className="flex items-center gap-2.5 text-[var(--theme-text,#f1f5f9)] font-semibold text-base">
+            <span className="text-[var(--theme-accent,#6366f1)]">{icon}</span>
             <span>{title}</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+            className="p-1 rounded-lg hover:bg-[var(--theme-card-hover,#1a2438)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>

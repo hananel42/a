@@ -201,10 +201,11 @@ The Platform Settings tab manages model endpoints, UI preferences, and safety ru
 - **Model Selection**: Choose your default active model.
 - **Test Connection**: Instant re-check button to verify connectivity.
 
-### Visual Appearance & Markdown Styling
+### Unified Application Themes
 
-- **Dark / Light Mode**: Toggle dark workspace mode (twilight navy canvas) or light mode.
-- **Default Markdown Theme**: Choose default preview preset (Standard, Serif, Newspaper, Nord, Tech).
+- **Unified Theme Selector**: Space-efficient dropdown selector unifying the UI canvas, header, file explorer, document editor, and markdown typography across all preset and custom styles.
+  - **Preset Themes**: Twilight Slate (Dark), Clean Light (Light), Warm Editorial (Light), Nordic Frost (Dark), Terminal Phosphor (Dark), Midnight Emerald (Dark), Cyber Cobalt (Dark).
+  - **Custom Theme Builder**: Click **+ Custom** to open the theme creator modal. Pick custom background, sidebar, surface, text, and accent colors with live card previews and save directly to your workspace.
 
 ### Protected Tools Approval Rules
 

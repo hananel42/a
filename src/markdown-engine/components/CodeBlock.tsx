@@ -123,12 +123,12 @@ export default function CodeBlock({
     () =>
       ({
         standard: {
-          outer: "bg-slate-950 border border-slate-800 text-slate-100",
-          header: "bg-slate-900 border-b border-slate-800 text-slate-400",
-          badge: "bg-slate-800 text-indigo-300",
-          tag: "bg-indigo-500 animate-pulse",
-          lineNo: "text-slate-600 border-r border-slate-800/80",
-          copyBtn: "hover:bg-slate-800 hover:text-white",
+          outer: "bg-[var(--theme-bg,#070c18)] border border-[var(--theme-border,#141d30)] text-[var(--theme-text,#f1f5f9)]",
+          header: "bg-[var(--theme-card,#101726)] border-b border-[var(--theme-border,#141d30)] text-[var(--theme-text-muted,#94a3b8)]",
+          badge: "bg-[var(--theme-accent-subtle,rgba(16,185,129,0.15))] text-[var(--theme-accent,#10b981)]",
+          tag: "bg-[var(--theme-accent,#10b981)] animate-pulse",
+          lineNo: "text-[var(--theme-text-muted,#94a3b8)] border-r border-[var(--theme-border,#141d30)]",
+          copyBtn: "hover:bg-[var(--theme-card-hover,#162032)] hover:text-[var(--theme-text,#f1f5f9)]",
         },
         serif: {
           outer: "bg-[#1c1b19] border border-[#2f2e2a] text-[#e3e1db]",

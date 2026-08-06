@@ -74,7 +74,7 @@ export function MediaDialog({ isOpen, onClose, onSubmit }: MediaDialogProps) {
       icon={<Video size={18} />}
     >
       {/* Tabs */}
-      <div className="flex border-b border-slate-100 dark:border-slate-800/80 mb-4 pb-1">
+      <div className="flex border-b border-[var(--theme-border,#141d30)] mb-4 pb-1">
         <button
           type="button"
           onClick={() => {
@@ -82,7 +82,7 @@ export function MediaDialog({ isOpen, onClose, onSubmit }: MediaDialogProps) {
             setUrl("");
             setAltOrId("");
           }}
-          className={`flex-1 pb-2 text-sm font-semibold border-b-2 text-center transition-all cursor-pointer ${activeTab === "image" ? "border-indigo-600 text-indigo-600 dark:text-indigo-400" : "border-transparent text-slate-400 hover:text-slate-600"}`}
+          className={`flex-1 pb-2 text-sm font-semibold border-b-2 text-center transition-all cursor-pointer ${activeTab === "image" ? "border-[var(--theme-accent,#6366f1)] text-[var(--theme-accent,#6366f1)]" : "border-transparent text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]"}`}
         >
           <span className="flex items-center justify-center gap-1.5">
             <Image size={14} />
@@ -96,7 +96,7 @@ export function MediaDialog({ isOpen, onClose, onSubmit }: MediaDialogProps) {
             setUrl("");
             setAltOrId("");
           }}
-          className={`flex-1 pb-2 text-sm font-semibold border-b-2 text-center transition-all cursor-pointer ${activeTab === "video" ? "border-indigo-600 text-indigo-600 dark:text-indigo-400" : "border-transparent text-slate-400 hover:text-slate-600"}`}
+          className={`flex-1 pb-2 text-sm font-semibold border-b-2 text-center transition-all cursor-pointer ${activeTab === "video" ? "border-[var(--theme-accent,#6366f1)] text-[var(--theme-accent,#6366f1)]" : "border-transparent text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]"}`}
         >
           <span className="flex items-center justify-center gap-1.5">
             <Film size={14} />
@@ -110,7 +110,7 @@ export function MediaDialog({ isOpen, onClose, onSubmit }: MediaDialogProps) {
             setUrl("");
             setAltOrId("");
           }}
-          className={`flex-1 pb-2 text-sm font-semibold border-b-2 text-center transition-all cursor-pointer ${activeTab === "youtube" ? "border-indigo-600 text-indigo-600 dark:text-indigo-400" : "border-transparent text-slate-400 hover:text-slate-600"}`}
+          className={`flex-1 pb-2 text-sm font-semibold border-b-2 text-center transition-all cursor-pointer ${activeTab === "youtube" ? "border-[var(--theme-accent,#6366f1)] text-[var(--theme-accent,#6366f1)]" : "border-transparent text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]"}`}
         >
           <span className="flex items-center justify-center gap-1.5">
             <Youtube size={14} />
@@ -121,12 +121,12 @@ export function MediaDialog({ isOpen, onClose, onSubmit }: MediaDialogProps) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Presets */}
-        <div className="flex items-center justify-between text-xs bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800/40">
-          <span className="text-slate-400 font-medium">Quick Demo Preset:</span>
+        <div className="flex items-center justify-between text-xs bg-[var(--theme-bg,#070c18)] p-2.5 rounded-lg border border-[var(--theme-border,#141d30)]">
+          <span className="text-[var(--theme-text-muted,#94a3b8)] font-medium">Quick Demo Preset:</span>
           <button
             type="button"
             onClick={() => setPreset(activeTab)}
-            className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline cursor-pointer"
+            className="text-[var(--theme-accent,#6366f1)] font-semibold hover:underline cursor-pointer"
           >
             Load Sample{" "}
             {activeTab === "image"
@@ -138,7 +138,7 @@ export function MediaDialog({ isOpen, onClose, onSubmit }: MediaDialogProps) {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-semibold text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-wider mb-1.5">
             {activeTab === "youtube"
               ? "YouTube Video ID or Link"
               : "Media Source URL"}
@@ -155,12 +155,12 @@ export function MediaDialog({ isOpen, onClose, onSubmit }: MediaDialogProps) {
             }
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-400 transition-colors"
+            className="w-full px-3.5 py-2 rounded-xl border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] text-sm focus:outline-none focus:border-[var(--theme-accent,#6366f1)] transition-colors"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-semibold text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-wider mb-1.5">
             {activeTab === "image"
               ? "Alt Text / Caption"
               : activeTab === "youtube"
@@ -176,13 +176,13 @@ export function MediaDialog({ isOpen, onClose, onSubmit }: MediaDialogProps) {
             }
             value={altOrId}
             onChange={(e) => setAltOrId(e.target.value)}
-            className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-400 transition-colors"
+            className="w-full px-3.5 py-2 rounded-xl border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] text-sm focus:outline-none focus:border-[var(--theme-accent,#6366f1)] transition-colors"
           />
         </div>
 
         {activeTab === "video" && (
           <div>
-            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-wider mb-1.5">
               Poster Thumbnail Image URL (Optional)
             </label>
             <input
@@ -190,7 +190,7 @@ export function MediaDialog({ isOpen, onClose, onSubmit }: MediaDialogProps) {
               placeholder="https://images.unsplash.com/..."
               value={posterUrl}
               onChange={(e) => setPosterUrl(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-400 transition-colors"
+              className="w-full px-3.5 py-2 rounded-xl border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] text-sm focus:outline-none focus:border-[var(--theme-accent,#6366f1)] transition-colors"
             />
           </div>
         )}
@@ -199,15 +199,15 @@ export function MediaDialog({ isOpen, onClose, onSubmit }: MediaDialogProps) {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-semibold transition-colors cursor-pointer"
+            className="flex-1 py-2.5 rounded-xl border border-[var(--theme-border,#141d30)] hover:bg-[var(--theme-card-hover,#1a2438)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] text-sm font-semibold transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors shadow shadow-indigo-600/10 hover:shadow-md cursor-pointer"
+            className="flex-1 py-2.5 rounded-xl bg-[var(--theme-accent,#6366f1)] hover:opacity-90 text-white text-sm font-semibold transition-colors shadow-xs cursor-pointer"
           >
-            Embed Media
+            Insert Media
           </button>
         </div>
       </form>

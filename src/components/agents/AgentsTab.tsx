@@ -154,16 +154,16 @@ export default function AgentsTab({
   return (
     <div
       id="agents-tab"
-      className="flex-1 overflow-y-auto h-full bg-slate-50 dark:bg-slate-950 p-6 md:p-8 transition-colors"
+      className="flex-1 overflow-y-auto h-full bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] p-6 md:p-8 transition-colors"
     >
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Hub Header */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[var(--theme-border,#141d30)] pb-6">
           <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white font-sans">
+            <h1 className="text-xl font-extrabold tracking-tight text-[var(--theme-text,#f1f5f9)] font-sans">
               Computational Agents Catalog
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1 text-xs font-sans max-w-xl">
+            <p className="text-[var(--theme-text-muted,#94a3b8)] mt-1 text-xs font-sans max-w-xl">
               Click on any agent to edit its details, system instructions, final
               prompt template, memories, and permissions.
             </p>
@@ -172,7 +172,7 @@ export default function AgentsTab({
           {!showAddForm && !editingAgent && (
             <button
               onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold font-sans rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm shadow-indigo-600/10"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[var(--theme-accent,#10b981)] hover:opacity-90 text-white text-xs font-bold font-sans rounded-xl cursor-pointer transition-all active:scale-95 shadow-sm"
             >
               <UserPlus size={14} />
               <span>Create Agent</span>
@@ -236,32 +236,32 @@ export default function AgentsTab({
               <div className="relative w-full sm:max-w-md">
                 <Search
                   size={14}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted,#94a3b8)]"
                 />
                 <input
                   type="text"
                   placeholder="Filter agents by name, role, tools, boundaries..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors shadow-2xs"
+                  className="w-full bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] rounded-xl pl-10 pr-4 py-2 text-xs text-[var(--theme-text,#f1f5f9)] placeholder-[var(--theme-text-muted,#94a3b8)] focus:outline-none focus:border-[var(--theme-accent,#10b981)] transition-colors shadow-2xs"
                 />
               </div>
-              <div className="text-[11px] text-slate-400 font-mono font-semibold">
+              <div className="text-[11px] text-[var(--theme-text-muted,#94a3b8)] font-mono font-semibold">
                 SHOWING {filteredAgents.length} OF {agents.length} AGENTS
               </div>
             </div>
 
             {/* Bento Cards layout */}
             {filteredAgents.length === 0 ? (
-              <div className="p-12 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+              <div className="p-12 text-center bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] rounded-2xl">
                 <ShieldAlert
-                  className="mx-auto text-slate-400 mb-2"
+                  className="mx-auto text-[var(--theme-text-muted,#94a3b8)] mb-2"
                   size={28}
                 />
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                <p className="text-xs font-semibold text-[var(--theme-text,#f1f5f9)]">
                   No matching computational profiles found.
                 </p>
-                <p className="text-[11px] text-slate-400 mt-1 font-sans">
+                <p className="text-[11px] text-[var(--theme-text-muted,#94a3b8)] mt-1 font-sans">
                   Try searching with a different term or clear the filter.
                 </p>
               </div>
@@ -277,7 +277,7 @@ export default function AgentsTab({
                     <div
                       key={ag.id}
                       onClick={() => setEditingAgent(ag)}
-                      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 p-6 rounded-2xl flex flex-col justify-between shadow-2xs hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-800 transition-all duration-200 cursor-pointer group"
+                      className="bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] p-6 rounded-2xl flex flex-col justify-between shadow-2xs hover:border-[var(--theme-accent,#10b981)] hover:bg-[var(--theme-card-hover,#162032)] transition-all duration-200 cursor-pointer group"
                     >
                       <div>
                         {/* Card Header */}

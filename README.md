@@ -33,7 +33,8 @@ The application is engineered as a highly responsive, modern, full-stack applica
 
 ### High-Level Tech Stack
 
-- **Frontend**: React 18, Vite 6, Tailwind CSS (styling), Lucide React (icons), Motion (transitions and animations), PrismJS (code syntax highlighting), and React Markdown.
+- **Unified Application Theme System**: 7 complete, eye-pleasing application themes (`APP_THEMES` in `src/utils/theme.ts`) unifying the UI canvas, header, file explorer, document editor, and markdown typography into cohesive light and dark styles.
+- **Multi-File Tab Workspace Navigation**: Persistent open file tabs bar (`FileTabs.tsx`) supporting quick switching between multiple documents, auto-opening created files, and tab dismissal.
 - **Backend**: Express (Node.js), custom middleware, `openai` API Client SDK, and local filesystem endpoints.
 - **Data Stores**: Local Storage (chat sessions, active profiles, user configuration persistence) alongside a Virtual Workspace tree managed directly on the server's workspace disk.
 - **Sandbox Environment**: In-browser Pyodide WebAssembly sandbox engine performing client-side Python execution, capturing STDOUT/STDERR, and tracking modified files to synchronize changes back into the user's workspace.

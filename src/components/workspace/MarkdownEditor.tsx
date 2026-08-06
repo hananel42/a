@@ -120,23 +120,23 @@ export default function MarkdownEditor({
   };
 
   return (
-    <div className="flex flex-col flex-1 min-w-0 bg-white dark:bg-slate-950 overflow-hidden relative">
+    <div className="flex flex-col flex-1 min-w-0 bg-[var(--theme-card,#101726)] text-[var(--theme-text,#f1f5f9)] overflow-hidden relative">
       {searchOpen && (
-        <div className="flex flex-col gap-2.5 p-3 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 animate-slide-down z-10 select-none">
+        <div className="flex flex-col gap-2.5 p-3 bg-[var(--theme-bg,#070c18)] border-b border-[var(--theme-border,#141d30)] animate-slide-down z-10 select-none">
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
             <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-              <Search size={16} className="text-slate-400 shrink-0" />
+              <Search size={16} className="text-[var(--theme-text-muted,#94a3b8)] shrink-0" />
               <input
                 type="text"
                 placeholder="Find text..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500 transition-colors"
+                className="flex-1 px-2.5 py-1.5 rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-card,#101726)] text-[var(--theme-text,#f1f5f9)] text-xs focus:outline-none focus:border-[var(--theme-accent,#10b981)] transition-colors"
                 autoFocus
               />
 
               {searchQuery && (
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-[10px] text-slate-500 font-mono">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] text-[10px] text-[var(--theme-text-muted,#94a3b8)] font-mono">
                   <span>{searchIndices.length > 0 ? activeIndex + 1 : 0}</span>
                   <span>/</span>
                   <span>{searchIndices.length}</span>
@@ -148,7 +148,7 @@ export default function MarkdownEditor({
               <button
                 onClick={handlePrevSearch}
                 disabled={searchIndices.length <= 1}
-                className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-700 disabled:opacity-35 disabled:hover:bg-transparent cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-[var(--theme-card-hover,#162032)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] disabled:opacity-35 disabled:hover:bg-transparent cursor-pointer"
                 title="Previous Occurrence"
               >
                 <ChevronUp size={15} />
@@ -156,17 +156,17 @@ export default function MarkdownEditor({
               <button
                 onClick={handleNextSearch}
                 disabled={searchIndices.length <= 1}
-                className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-700 disabled:opacity-35 disabled:hover:bg-transparent cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-[var(--theme-card-hover,#162032)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] disabled:opacity-35 disabled:hover:bg-transparent cursor-pointer"
                 title="Next Occurrence"
               >
                 <ChevronDown size={15} />
               </button>
 
-              <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
+              <div className="h-4 w-px bg-[var(--theme-border,#141d30)] mx-1" />
 
               <button
                 onClick={() => setMatchCase(!matchCase)}
-                className={`px-2 py-1 rounded-md text-[10px] font-semibold tracking-wider uppercase transition-colors border cursor-pointer ${matchCase ? "bg-indigo-100 border-indigo-200 text-indigo-700 dark:bg-indigo-950 dark:border-indigo-900 dark:text-indigo-300" : "bg-transparent border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"}`}
+                className={`px-2 py-1 rounded-md text-[10px] font-semibold tracking-wider uppercase transition-colors border cursor-pointer ${matchCase ? "bg-[var(--theme-accent-subtle,rgba(16,185,129,0.15))] border-[var(--theme-accent,#10b981)] text-[var(--theme-accent,#10b981)]" : "bg-transparent border-[var(--theme-border,#141d30)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]"}`}
                 title="Match character case"
               >
                 Aa
@@ -174,7 +174,7 @@ export default function MarkdownEditor({
 
               <button
                 onClick={() => setSearchOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600"
+                className="p-1.5 rounded-lg hover:bg-[var(--theme-card-hover,#162032)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]"
               >
                 <X size={15} />
               </button>
@@ -183,13 +183,13 @@ export default function MarkdownEditor({
 
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-              <Replace size={16} className="text-slate-400 shrink-0" />
+              <Replace size={16} className="text-[var(--theme-text-muted,#94a3b8)] shrink-0" />
               <input
                 type="text"
                 placeholder="Replace with..."
                 value={replaceQuery}
                 onChange={(e) => setReplaceQuery(e.target.value)}
-                className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:border-indigo-500 transition-colors"
+                className="flex-1 px-2.5 py-1.5 rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-card,#101726)] text-[var(--theme-text,#f1f5f9)] text-xs focus:outline-none focus:border-[var(--theme-accent,#10b981)] transition-colors"
               />
             </div>
 
@@ -197,14 +197,14 @@ export default function MarkdownEditor({
               <button
                 onClick={handleReplace}
                 disabled={searchIndices.length === 0}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 disabled:opacity-35 cursor-pointer"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[var(--theme-border,#141d30)] hover:bg-[var(--theme-card-hover,#162032)] text-[var(--theme-text,#f1f5f9)] disabled:opacity-35 cursor-pointer"
               >
                 Replace
               </button>
               <button
                 onClick={handleReplaceAll}
                 disabled={searchIndices.length === 0}
-                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold disabled:opacity-35 cursor-pointer shadow-sm"
+                className="px-3 py-1.5 rounded-lg bg-[var(--theme-accent,#10b981)] hover:opacity-90 text-white text-xs font-semibold disabled:opacity-35 cursor-pointer shadow-sm"
               >
                 Replace All
               </button>
@@ -221,19 +221,19 @@ export default function MarkdownEditor({
           onKeyDown={handleKeyDown}
           dir="auto"
           placeholder="Start writing awesome Markdown here..."
-          className={`flex-1 h-full w-full outline-none resize-none py-4 px-5 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-mono text-sm leading-relaxed focus:ring-0 focus:outline-none placeholder-slate-400 overflow-auto scrollbar-thin`}
+          className={`flex-1 h-full w-full outline-none resize-none py-4 px-5 bg-[var(--theme-card,#101726)] text-[var(--theme-text,#f1f5f9)] font-mono text-sm leading-relaxed focus:ring-0 focus:outline-none placeholder-[var(--theme-text-muted,#94a3b8)] overflow-auto scrollbar-thin`}
           style={{ tabSize: 4 }}
         />
       </div>
 
-      <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 px-4 py-1.5 text-[10px] sm:text-xs text-slate-400 font-mono select-none shrink-0">
+      <div className="flex items-center justify-between border-t border-[var(--theme-border,#141d30)] bg-[var(--theme-sidebar,#0b101f)] px-4 py-1.5 text-[10px] sm:text-xs text-[var(--theme-text-muted,#94a3b8)] font-mono select-none shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
-            <Clock size={12} className="text-slate-400" />
+            <Clock size={12} className="text-[var(--theme-text-muted,#94a3b8)]" />
             <span>{readingTime} min read</span>
           </div>
           <div className="flex items-center gap-1">
-            <FileText size={12} className="text-slate-400" />
+            <FileText size={12} className="text-[var(--theme-text-muted,#94a3b8)]" />
             <span>{linesCount} lines</span>
           </div>
         </div>
@@ -242,33 +242,33 @@ export default function MarkdownEditor({
           <button
             onClick={handleCopyMarkdown}
             title="Copy whole document as Raw Markdown to clipboard"
-            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 font-sans font-semibold text-[10px] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--theme-card,#101726)] hover:bg-[var(--theme-card-hover,#162032)] text-[var(--theme-text,#f1f5f9)] border border-[var(--theme-border,#141d30)] font-sans font-semibold text-[10px] transition-all cursor-pointer"
           >
             {copied ? (
               <>
                 <Check
                   size={11}
-                  className="text-emerald-500 dark:text-emerald-400"
+                  className="text-[var(--theme-accent,#10b981)]"
                 />
-                <span className="text-emerald-500 dark:text-emerald-400">
+                <span className="text-[var(--theme-accent,#10b981)]">
                   Copied!
                 </span>
               </>
             ) : (
               <>
-                <Copy size={11} className="text-slate-400" />
+                <Copy size={11} className="text-[var(--theme-text-muted,#94a3b8)]" />
                 <span>Copy MD</span>
               </>
             )}
           </button>
 
-          <div className="h-4.5 w-px bg-slate-200 dark:bg-slate-800 mx-0.5" />
+          <div className="h-4.5 w-px bg-[var(--theme-border,#141d30)] mx-0.5" />
 
-          <span className="text-slate-400 flex items-center gap-1">
+          <span className="text-[var(--theme-text-muted,#94a3b8)] flex items-center gap-1">
             <span>Editor Sync</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-accent,#10b981)] inline-block animate-pulse" />
           </span>
-          <span className="hidden sm:inline border-l border-slate-200 dark:border-slate-800 pl-2 text-slate-500 uppercase tracking-wider font-semibold">
+          <span className="hidden sm:inline border-l border-[var(--theme-border,#141d30)] pl-2 text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-wider font-semibold">
             UTF-8
           </span>
         </div>

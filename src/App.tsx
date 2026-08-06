@@ -16,6 +16,13 @@ import AgentsTab from "./components/agents/AgentsTab";
 import SettingsTab from "./components/settings/SettingsTab";
 import NotificationToast from "./components/layout/NotificationToast";
 
+import {
+  AppTheme,
+  DEFAULT_THEME_ID,
+  getThemeById,
+  applyThemeToDocument,
+} from "./utils/theme";
+
 export default function App() {
   const [toast, setToast] = useState<{
     message: string;
@@ -38,35 +45,27 @@ export default function App() {
     () => localStorage.getItem("agent_hub_model") || "",
   );
 
-  // 1. Dark Mode configuration (default to true / twilight dark style)
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem("agent_hub_dark_mode");
-    return saved !== "false";
+  // Unified Application Theme State
+  const [appTheme, setAppTheme] = useState<AppTheme>(() => {
+    const savedId = localStorage.getItem("agent_hub_theme");
+    if (savedId) {
+      return getThemeById(savedId);
+    }
+    // Migration fallback for legacy dark mode setting
+    const legacyDark = localStorage.getItem("agent_hub_dark_mode");
+    if (legacyDark === "false") {
+      return getThemeById("clean-light");
+    }
+    return getThemeById(DEFAULT_THEME_ID);
   });
 
   useEffect(() => {
-    localStorage.setItem("agent_hub_dark_mode", String(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
+    localStorage.setItem("agent_hub_theme", appTheme.id);
+    applyThemeToDocument(appTheme);
+  }, [appTheme]);
 
-  // 2. Markdown visual theme configuration
-  const [previewStyle, setPreviewStyle] = useState<
-    "standard" | "serif" | "newspaper" | "nord" | "tech"
-  >(() => {
-    return (
-      (localStorage.getItem("agent_hub_preview_style") as any) || "standard"
-    );
-  });
-
-  const handleSetPreviewStyle = (
-    style: "standard" | "serif" | "newspaper" | "nord" | "tech",
-  ) => {
-    setPreviewStyle(style);
-    localStorage.setItem("agent_hub_preview_style", style);
+  const handleSetAppTheme = (theme: AppTheme) => {
+    setAppTheme(theme);
   };
 
   // 3. Sandboxed tools confirmation list configuration
@@ -137,19 +136,19 @@ export default function App() {
   return (
     <div
       id="app-agentic-hub"
-      className="flex flex-col h-screen w-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 overflow-hidden font-sans transition-colors duration-200 animate-fade-in"
+      className="flex flex-col h-screen w-screen bg-[var(--theme-bg,#09090b)] text-[var(--theme-text,#f4f4f5)] overflow-hidden font-sans transition-colors duration-200 animate-fade-in"
     >
       {/* 1. TOP HUB HEADER BAR */}
-      <header className="h-12 border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/40 backdrop-blur-md px-4 flex items-center justify-between shrink-0 select-none z-30 transition-colors">
+      <header className="h-12 border-b border-[var(--theme-border,#27272a)] bg-[var(--theme-card,#18181b)] text-[var(--theme-text,#f4f4f5)] backdrop-blur-md px-4 flex items-center justify-between shrink-0 select-none z-30 transition-colors">
         {/* Left side: branding */}
         <div className="flex items-center gap-2">
-          <div className="w-7.5 h-7.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-xs">
+          <div className="w-7.5 h-7.5 rounded-xl bg-[var(--theme-bg,#09090b)] border border-[var(--theme-border,#27272a)] flex items-center justify-center text-[var(--theme-accent,#6366f1)] shadow-xs">
             <Sparkles size={14} className="animate-pulse" />
           </div>
           <div>
-            <span className="text-xs font-bold tracking-wide uppercase text-slate-800 dark:text-white font-sans flex items-center gap-1.5">
+            <span className="text-xs font-bold tracking-wide uppercase text-[var(--theme-text,#f4f4f5)] font-sans flex items-center gap-1.5">
               <span>Agentic Hub</span>
-              <span className="text-[9px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded-lg border border-indigo-200/45 dark:border-indigo-900/30">
+              <span className="text-[9px] text-[var(--theme-accent,#6366f1)] bg-[var(--theme-accent-subtle,rgba(99,102,241,0.15))] px-1.5 py-0.5 rounded-lg border border-[var(--theme-border,#27272a)]">
                 v3.0
               </span>
             </span>
@@ -157,7 +156,7 @@ export default function App() {
         </div>
 
         {/* Center: Main navigation tabs */}
-        <nav className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/50 dark:border-slate-800/50">
+        <nav className="flex items-center gap-1 bg-[var(--theme-bg,#09090b)] p-1 rounded-xl border border-[var(--theme-border,#27272a)]">
           {[
             {
               id: "chat" as const,
@@ -180,8 +179,8 @@ export default function App() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-3.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 activeTab === tab.id
-                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-800 shadow-2xs"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                  ? "bg-[var(--theme-card,#18181b)] text-[var(--theme-accent,#6366f1)] border border-[var(--theme-border,#27272a)] shadow-2xs"
+                  : "text-[var(--theme-text-muted,#a1a1aa)] hover:text-[var(--theme-text,#f4f4f5)]"
               }`}
             >
               {tab.icon}
@@ -193,21 +192,21 @@ export default function App() {
         {/* Right side: Model status, Connection status, and Settings */}
         <div className="flex items-center gap-2 text-xs font-sans">
           {/* Model Selection Dropdown */}
-          <div className="flex items-center gap-1.5 px-2.5 h-7.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300 shadow-2xs">
-            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest font-sans">
+          <div className="flex items-center gap-1.5 px-2.5 h-7.5 rounded-xl bg-[var(--theme-bg,#070c18)] border border-[var(--theme-border,#141d30)] text-[var(--theme-text,#f1f5f9)] shadow-2xs">
+            <span className="text-[9px] font-bold text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-widest font-sans">
               MODEL:
             </span>
             <select
               value={model}
               onChange={(e) => handleSetModel(e.target.value)}
-              className="bg-transparent border-none text-slate-800 dark:text-white font-bold outline-none cursor-pointer text-xs pr-1 bg-white dark:bg-slate-950"
+              className="bg-transparent border-none text-[var(--theme-text,#f1f5f9)] font-bold outline-none cursor-pointer text-xs pr-1 bg-[var(--theme-bg,#070c18)]"
             >
               {connection.models && connection.models.length > 0 ? (
                 connection.models.map((m) => (
                   <option
                     key={m}
                     value={m}
-                    className="bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans"
+                    className="bg-[var(--theme-card,#101726)] text-[var(--theme-text,#f1f5f9)] font-sans"
                   >
                     {m}
                   </option>
@@ -215,7 +214,7 @@ export default function App() {
               ) : (
                 <option
                   value=""
-                  className="bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans"
+                  className="bg-[var(--theme-card,#101726)] text-[var(--theme-text,#f1f5f9)] font-sans"
                 >
                   None (No models detected)
                 </option>
@@ -228,10 +227,10 @@ export default function App() {
             onClick={() => connection.checkConnection()}
             className={`flex items-center gap-2 px-3 h-7.5 rounded-xl border cursor-pointer select-none transition-all active:scale-95 shadow-2xs ${
               connection.status === "connected"
-                ? "bg-white dark:bg-slate-950 border-emerald-200 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+                ? "bg-[var(--theme-bg,#070c18)] border-emerald-500/30 text-emerald-400"
                 : connection.status === "checking"
-                  ? "bg-white dark:bg-slate-950 border-amber-200 dark:border-amber-900/30 text-amber-500 dark:text-amber-400 animate-pulse"
-                  : "bg-white dark:bg-slate-950 border-red-200 dark:border-red-900/30 text-red-500 dark:text-red-400"
+                  ? "bg-[var(--theme-bg,#070c18)] border-amber-500/30 text-amber-400 animate-pulse"
+                  : "bg-[var(--theme-bg,#070c18)] border-red-500/30 text-red-400"
             }`}
             title={`API Base: ${apiBaseUrl} (Click to recheck)`}
           >
@@ -254,15 +253,15 @@ export default function App() {
           </div>
 
           {/* Settings Tab */}
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/50 dark:border-slate-800/50">
+          <div className="flex items-center gap-1 bg-[var(--theme-bg,#070c18)] p-1 rounded-xl border border-[var(--theme-border,#141d30)]">
             <button
               onClick={() =>
                 setActiveTab(activeTab === "settings" ? "chat" : "settings")
               }
               className={`p-1 rounded-lg transition-all cursor-pointer ${
                 activeTab === "settings"
-                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-800 shadow-2xs"
-                  : "text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                  ? "bg-[var(--theme-card,#101726)] text-[var(--theme-accent,#6366f1)] border border-[var(--theme-border,#141d30)] shadow-2xs"
+                  : "text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]"
               }`}
               title="Platform Settings"
             >
@@ -288,7 +287,7 @@ export default function App() {
             processUploadedFiles={workspace.processUploadedFiles}
             onCreateAgent={agentSync.createAgent}
             requiresConfirmationTools={requiresConfirmationTools}
-            previewStyle={previewStyle}
+            previewStyle={appTheme.markdownStyle}
             onOpenCreateAgent={() => setActiveTab("agents")}
           />
         )}
@@ -297,6 +296,7 @@ export default function App() {
           <WorkspaceTab
             workspace={workspace}
             showNotification={showNotification}
+            appTheme={appTheme}
           />
         )}
 
@@ -330,10 +330,8 @@ export default function App() {
             setApiBaseUrl={handleSetApiBaseUrl}
             model={model}
             setModel={handleSetModel}
-            darkMode={darkMode}
-            setDarkMode={setDarkMode}
-            previewStyle={previewStyle}
-            setPreviewStyle={handleSetPreviewStyle}
+            appTheme={appTheme}
+            setAppTheme={handleSetAppTheme}
             requiresConfirmationTools={requiresConfirmationTools}
             setRequiresConfirmationTools={handleSetRequiresConfirmationTools}
             connectionStatus={connection.status}

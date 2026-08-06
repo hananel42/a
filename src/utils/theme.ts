@@ -1,9 +1,269 @@
-export const getThemeBgClass = (
-  style: "standard" | "serif" | "newspaper" | "nord" | "tech",
-) => {
+/**
+ * @file theme.ts
+ * @description Centralized Theme Management System.
+ * Defines unified application themes (combining UI dark/light modes with typography & color palettes).
+ */
+
+export type AppThemeId =
+  | "twilight"
+  | "clean-light"
+  | "nordic-polar"
+  | "editorial-warm"
+  | "terminal-matrix"
+  | "midnight-emerald"
+  | "cyber-cobalt";
+
+export interface AppTheme {
+  id: string;
+  name: string;
+  mode: "dark" | "light";
+  description: string;
+  markdownStyle: "standard" | "serif" | "newspaper" | "nord" | "tech";
+  isCustom?: boolean;
+  previewColor: {
+    bg: string;
+    sidebar: string;
+    card: string;
+    accent: string;
+    text: string;
+    border?: string;
+    textMuted?: string;
+  };
+}
+
+export const APP_THEMES: AppTheme[] = [
+  {
+    id: "twilight",
+    name: "Obsidian Charcoal",
+    mode: "dark",
+    description: "Sleek, modern charcoal dark theme with vibrant indigo accents and easy-on-the-eyes contrast.",
+    markdownStyle: "standard",
+    previewColor: {
+      bg: "#09090b",
+      sidebar: "#121215",
+      card: "#18181b",
+      accent: "#6366f1",
+      text: "#f4f4f5",
+      border: "#27272a",
+      textMuted: "#a1a1aa",
+    },
+  },
+  {
+    id: "clean-light",
+    name: "Clean Light",
+    mode: "light",
+    description: "Crisp white canvas with high-contrast text and indigo highlights.",
+    markdownStyle: "standard",
+    previewColor: {
+      bg: "#f8fafc",
+      sidebar: "#f1f5f9",
+      card: "#ffffff",
+      accent: "#4f46e5",
+      text: "#0f172a",
+      border: "#e2e8f0",
+      textMuted: "#64748b",
+    },
+  },
+  {
+    id: "editorial-warm",
+    name: "Warm Editorial",
+    mode: "light",
+    description: "Soft warm parchment paper with elegant serif typography.",
+    markdownStyle: "serif",
+    previewColor: {
+      bg: "#fcfbf7",
+      sidebar: "#f5f0e6",
+      card: "#ffffff",
+      accent: "#d97706",
+      text: "#2c2b29",
+      border: "#e7e2d7",
+      textMuted: "#78716c",
+    },
+  },
+  {
+    id: "nordic-polar",
+    name: "Nordic Frost",
+    mode: "dark",
+    description: "Calming arctic polar blue palette inspired by Nord.",
+    markdownStyle: "nord",
+    previewColor: {
+      bg: "#2e3440",
+      sidebar: "#282c37",
+      card: "#3b4252",
+      accent: "#88c0d0",
+      text: "#eceff4",
+      border: "#434c5e",
+      textMuted: "#d8dee9",
+    },
+  },
+  {
+    id: "terminal-matrix",
+    name: "Terminal Phosphor",
+    mode: "dark",
+    description: "Retro terminal with glowing phosphor green on dark matrix.",
+    markdownStyle: "tech",
+    previewColor: {
+      bg: "#050a06",
+      sidebar: "#030704",
+      card: "#0a140d",
+      accent: "#39ff14",
+      text: "#39ff14",
+      border: "#0e2413",
+      textMuted: "#22c55e",
+    },
+  },
+  {
+    id: "midnight-emerald",
+    name: "Midnight Emerald",
+    mode: "dark",
+    description: "Tranquil deep forest emerald green canvas.",
+    markdownStyle: "standard",
+    previewColor: {
+      bg: "#06140e",
+      sidebar: "#040e0a",
+      card: "#0b2118",
+      accent: "#10b981",
+      text: "#ecfdf5",
+      border: "#113829",
+      textMuted: "#6ee7b7",
+    },
+  },
+  {
+    id: "cyber-cobalt",
+    name: "Cyber Cobalt",
+    mode: "dark",
+    description: "High-contrast midnight cobalt blue with vibrant cyan accents.",
+    markdownStyle: "standard",
+    previewColor: {
+      bg: "#0b132b",
+      sidebar: "#080e21",
+      card: "#1c2541",
+      accent: "#06b6d4",
+      text: "#e0e6ed",
+      border: "#23335a",
+      textMuted: "#94a3b8",
+    },
+  },
+];
+
+export const DEFAULT_THEME_ID = "twilight";
+
+/** Custom themes helper methods */
+export function getCustomThemes(): AppTheme[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem("agent_hub_custom_themes");
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomTheme(theme: AppTheme): AppTheme[] {
+  const custom = getCustomThemes();
+  const existingIdx = custom.findIndex((t) => t.id === theme.id);
+  let updated: AppTheme[];
+  if (existingIdx >= 0) {
+    updated = [...custom];
+    updated[existingIdx] = { ...theme, isCustom: true };
+  } else {
+    updated = [...custom, { ...theme, isCustom: true }];
+  }
+  localStorage.setItem("agent_hub_custom_themes", JSON.stringify(updated));
+  return updated;
+}
+
+export function deleteCustomTheme(id: string): AppTheme[] {
+  const custom = getCustomThemes();
+  const updated = custom.filter((t) => t.id !== id);
+  localStorage.setItem("agent_hub_custom_themes", JSON.stringify(updated));
+  return updated;
+}
+
+export function getAllThemes(): AppTheme[] {
+  return [...APP_THEMES, ...getCustomThemes()];
+}
+
+export function getThemeById(id: string): AppTheme {
+  const all = getAllThemes();
+  const found = all.find((t) => t.id === id);
+  return found || APP_THEMES[0];
+}
+
+export function hexToRgba(hex: string, alpha: number): string {
+  if (!hex || typeof hex !== "string") return `rgba(16, 185, 129, ${alpha})`;
+  let clean = hex.replace("#", "");
+  if (clean.length === 3) {
+    clean = clean.split("").map((c) => c + c).join("");
+  }
+  const r = parseInt(clean.substring(0, 2), 16) || 0;
+  const g = parseInt(clean.substring(2, 4), 16) || 0;
+  const b = parseInt(clean.substring(4, 6), 16) || 0;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+export function adjustBrightness(hex: string, percent: number): string {
+  if (!hex || typeof hex !== "string" || !hex.startsWith("#")) return hex || "#18181b";
+  let num = parseInt(hex.replace("#", ""), 16);
+  if (isNaN(num)) return hex;
+  let r = (num >> 16) + Math.round(255 * (percent / 100));
+  let g = ((num >> 8) & 0x00ff) + Math.round(255 * (percent / 100));
+  let b = (num & 0x0000ff) + Math.round(255 * (percent / 100));
+
+  r = Math.min(255, Math.max(0, r));
+  g = Math.min(255, Math.max(0, g));
+  b = Math.min(255, Math.max(0, b));
+
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
+export function applyThemeToDocument(theme: AppTheme) {
+  if (typeof document === "undefined") return;
+
+  const root = document.documentElement;
+  root.setAttribute("data-theme", theme.id);
+
+  if (theme.mode === "dark") {
+    root.classList.add("dark");
+  } else {
+    root.classList.remove("dark");
+  }
+
+  // Inject dynamic CSS variables for app-wide reactivity
+  const bg = theme.previewColor.bg;
+  const sidebar = theme.previewColor.sidebar;
+  const card = theme.previewColor.card;
+  const accent = theme.previewColor.accent;
+  const text = theme.previewColor.text;
+  const border =
+    theme.previewColor.border ||
+    (theme.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)");
+  const textMuted =
+    theme.previewColor.textMuted ||
+    (theme.mode === "dark" ? "#94a3b8" : "#64748b");
+
+  const cardHover =
+    theme.mode === "dark"
+      ? adjustBrightness(card, 8)
+      : adjustBrightness(card, -5);
+  const accentHover = adjustBrightness(accent, theme.mode === "dark" ? 10 : -10);
+  const accentSubtle = hexToRgba(accent, 0.15);
+
+  root.style.setProperty("--theme-bg", bg);
+  root.style.setProperty("--theme-sidebar", sidebar);
+  root.style.setProperty("--theme-card", card);
+  root.style.setProperty("--theme-card-hover", cardHover);
+  root.style.setProperty("--theme-border", border);
+  root.style.setProperty("--theme-text", text);
+  root.style.setProperty("--theme-text-muted", textMuted);
+  root.style.setProperty("--theme-accent", accent);
+  root.style.setProperty("--theme-accent-hover", accentHover);
+  root.style.setProperty("--theme-accent-subtle", accentSubtle);
+}
+
+export function getThemeBgClass(style: string): string {
   switch (style) {
-    case "standard":
-      return "bg-white dark:bg-slate-950";
     case "serif":
       return "bg-[#fcfbf7] dark:bg-[#161614]";
     case "newspaper":
@@ -12,151 +272,35 @@ export const getThemeBgClass = (
       return "bg-[#f0f4f8] dark:bg-[#2e3440]";
     case "tech":
       return "bg-[#060a07]";
-  }
-};
-
-export const getThemeClasses = (
-  style: "standard" | "serif" | "newspaper" | "nord" | "tech",
-) => {
-  switch (style) {
     case "standard":
-      return "bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 prose prose-slate dark:prose-invert font-sans";
-    case "serif":
-      return "bg-[#fcfbf7] dark:bg-[#161614] text-[#2c2b29] dark:text-[#e3e1db] font-serif prose prose-stone dark:prose-invert prose-headings:text-[#1a1a19] dark:prose-headings:text-[#f3f2ef] prose-headings:font-serif prose-strong:text-[#1a1a19] dark:prose-strong:text-[#f3f2ef] prose-blockquote:text-[#42413e] dark:prose-blockquote:text-[#c4c1ba] prose-blockquote:border-amber-600/60 dark:prose-blockquote:border-amber-500/40 leading-relaxed";
-    case "newspaper":
-      return "bg-[#f5ebd2] dark:bg-[#1e1a14] text-[#121212] dark:text-[#ebdcb9] font-serif prose prose-stone dark:prose-invert prose-headings:text-black dark:prose-headings:text-[#faedd0] prose-headings:font-bold prose-headings:font-serif prose-strong:text-black dark:prose-strong:text-[#faedd0] prose-blockquote:text-[#333] dark:prose-blockquote:text-[#ebdcb9] prose-blockquote:border-black dark:prose-blockquote:border-[#ebdcb9] leading-loose";
-    case "nord":
-      return "bg-[#f0f4f8] dark:bg-[#2e3440] text-[#2e3440] dark:text-[#eceff4] font-sans prose prose-slate dark:prose-invert prose-headings:text-[#2e3440] dark:prose-headings:text-[#eceff4] prose-strong:text-[#2e3440] dark:prose-strong:text-[#eceff4] prose-blockquote:text-[#4c566a] dark:prose-blockquote:text-[#d8dee9] prose-blockquote:border-[#81a1c1] prose-code:text-[#5e81ac] dark:prose-code:text-[#88c0d0] prose-code:bg-slate-200/50 dark:prose-code:bg-[#3b4252]/40 prose-a:text-[#5e81ac] dark:prose-a:text-[#81a1c1]";
-    case "tech":
-      return "bg-[#060a07] text-[#39ff14] font-mono text-xs leading-relaxed prose prose-emerald prose-p:text-[#39ff14] prose-headings:text-[#39ff14] prose-headings:font-mono prose-strong:text-[#39ff14] prose-blockquote:text-[#82ff6e] prose-blockquote:border-[#39ff14] prose-ul:text-[#39ff14] prose-ol:text-[#39ff14] prose-li:text-[#39ff14] prose-table:text-[#39ff14] prose-th:text-[#39ff14] prose-td:text-[#39ff14] prose-code:text-[#39ff14] prose-code:bg-emerald-950/60 prose-a:text-[#39ff14] hover:prose-a:text-white";
+    default:
+      return "bg-[var(--theme-bg,#09090b)] text-[var(--theme-text,#f4f4f5)]";
   }
-};
+}
 
-export const getThemeExportCSS = (
-  style: "standard" | "serif" | "newspaper" | "nord" | "tech",
-) => {
-  const commonStyles = `
+export function getThemeClasses(style: string): string {
+  return "";
+}
+
+export function getThemeExportCSS(previewStyle: string): string {
+  return `
     body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       line-height: 1.6;
-      padding: 3rem 2rem;
+      color: #334155;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 2rem;
       max-width: 800px;
-      margin: 0 auto;
-      box-sizing: border-box;
+      margin-left: auto;
+      margin-right: auto;
     }
-    img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-    }
-    blockquote {
-      border-left: 4px solid;
-      padding-left: 1rem;
-      margin-left: 0;
-      margin-right: 0;
-      font-style: italic;
-    }
-    pre {
-      padding: 1rem;
-      border-radius: 8px;
-      overflow-x: auto;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-    code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      padding: 0.2em 0.4em;
-      border-radius: 4px;
-      font-size: 85%;
-    }
-    pre code {
-      padding: 0;
-      font-size: 100%;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1.5rem 0;
-    }
-    th, td {
-      border: 1px solid;
-      padding: 0.75rem;
-      text-align: left;
-    }
+    h1, h2, h3, h4, h5, h6 { color: #0f172a; margin-top: 1.5em; margin-bottom: 0.5em; }
+    code { background: #f1f5f9; padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; }
+    pre { background: #0f172a; color: #f8fafc; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+    blockquote { border-left: 4px solid #6366f1; padding-left: 1rem; color: #64748b; font-style: italic; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    th, td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; }
+    th { background: #f8fafc; }
   `;
-
-  const themeSpecificStyles = {
-    standard: `
-      body {
-        background-color: #ffffff;
-        color: #1e293b;
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-      }
-      h1, h2, h3, h4, h5, h6 { color: #0f172a; }
-      blockquote { border-color: #6366f1; background-color: #eef2ff; color: #334155; padding-top: 0.5rem; padding-bottom: 0.5rem; border-radius: 0 0.5rem 0.5rem 0; }
-      pre { background-color: #f1f5f9; }
-      code { background-color: #f1f5f9; color: #db2777; }
-      a { color: #4f46e5; }
-      th, td { border-color: #e2e8f0; }
-      th { background-color: #f8fafc; }
-    `,
-    serif: `
-      body {
-        background-color: #fcfbf7;
-        color: #2c2b29;
-        font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-      }
-      h1, h2, h3, h4, h5, h6 { color: #1a1a19; font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; }
-      blockquote { border-color: #d97706; background-color: #fbf9f3; color: #42413e; padding-top: 0.5rem; padding-bottom: 0.5rem; border-radius: 0 0.5rem 0.5rem 0; }
-      pre { background-color: #f4f1ea; }
-      code { background-color: #f4f1ea; color: #b45309; }
-      a { color: #92400e; }
-      th, td { border-color: #eae6db; }
-      th { background-color: #f6f3eb; }
-    `,
-    newspaper: `
-      body {
-        background-color: #f5ebd2;
-        color: #121212;
-        font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-        line-height: 1.8;
-      }
-      h1, h2, h3, h4, h5, h6 { color: #000000; font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; font-weight: bold; }
-      blockquote { border-color: #000000; background-color: rgba(0,0,0,0.05); color: #333333; padding-top: 0.5rem; padding-bottom: 0.5rem; }
-      pre { background-color: #ebdcb9; }
-      code { background-color: #ebdcb9; color: #000000; }
-      a { color: #000000; text-decoration: underline; font-weight: bold; }
-      th, td { border-color: #d2c29d; }
-      th { background-color: #ebdcb9; }
-    `,
-    nord: `
-      body {
-        background-color: #f0f4f8;
-        color: #2e3440;
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-      }
-      h1, h2, h3, h4, h5, h6 { color: #2e3440; }
-      blockquote { border-color: #81a1c1; background-color: rgba(229, 233, 240, 0.4); color: #4c566a; padding-top: 0.5rem; padding-bottom: 0.5rem; }
-      pre { background-color: #e5e9f0; }
-      code { background-color: rgba(229, 233, 240, 0.6); color: #5e81ac; }
-      a { color: #5e81ac; }
-      th, td { border-color: #d8dee9; }
-      th { background-color: #e5e9f0; }
-    `,
-    tech: `
-      body {
-        background-color: #060a07;
-        color: #39ff14;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-        font-size: 14px;
-      }
-      h1, h2, h3, h4, h5, h6 { color: #39ff14; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-      blockquote { border-color: #39ff14; background-color: rgba(5, 150, 105, 0.2); color: #82ff6e; padding-top: 0.5rem; padding-bottom: 0.5rem; }
-      pre { background-color: #001405; border: 1px solid #102a18; }
-      code { background-color: #001405; color: #39ff14; }
-      a { color: #39ff14; text-decoration: underline; }
-      th, td { border-color: #102a18; }
-      th { background-color: #001405; }
-    `,
-  };
-
-  return commonStyles + themeSpecificStyles[style];
-};
+}

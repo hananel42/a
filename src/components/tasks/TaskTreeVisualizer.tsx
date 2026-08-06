@@ -73,24 +73,24 @@ export default function TaskTreeVisualizer({
   };
 
   return (
-    <div className="my-3 border border-slate-200 dark:border-slate-800/80 rounded-2xl bg-slate-50/80 dark:bg-slate-900/40 p-3.5 font-sans">
+    <div className="my-3 border border-[var(--theme-border,#141d30)] rounded-2xl bg-[var(--theme-bg,#070c18)] p-3.5 font-sans text-[var(--theme-text,#f1f5f9)]">
       <div
         onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between cursor-pointer select-none"
       >
         <div className="flex items-center gap-2">
-          <GitBranch size={15} className="text-indigo-500" />
-          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider font-mono">
+          <GitBranch size={15} className="text-[var(--theme-accent,#10b981)]" />
+          <span className="text-xs font-bold text-[var(--theme-text,#f1f5f9)] uppercase tracking-wider font-mono">
             Sub-Task Breakdown & Sub-Agents ({subTasks.length})
           </span>
         </div>
-        <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+        <button className="text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)]">
           {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </button>
       </div>
 
       {expanded && (
-        <div className="mt-3 space-y-2.5 border-t border-slate-200/60 dark:border-slate-800/60 pt-2.5">
+        <div className="mt-3 space-y-2.5 border-t border-[var(--theme-border,#141d30)] pt-2.5">
           {subTasks.map((st) => {
             const assignedAgent = agents.find(
               (a) => a.id === st.assignedAgentId,
@@ -98,44 +98,44 @@ export default function TaskTreeVisualizer({
             return (
               <div
                 key={st.id}
-                className="p-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 space-y-1.5"
+                className="p-2.5 rounded-xl bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] space-y-1.5"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 text-[10px]">
+                    <div className="w-5 h-5 rounded-full bg-[var(--theme-accent-subtle,rgba(16,185,129,0.15))] text-[var(--theme-accent,#10b981)] flex items-center justify-center shrink-0 text-[10px]">
                       {renderAgentAvatar(
                         assignedAgent?.avatar,
                         assignedAgent?.name || "Agent",
                       )}
                     </div>
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                    <span className="text-xs font-bold text-[var(--theme-text,#f1f5f9)] truncate">
                       {st.title}
                     </span>
                   </div>
                   {renderStatusBadge(st.status, st.result?.success)}
                 </div>
 
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg border border-slate-100 dark:border-slate-800/40 space-y-1">
+                <div className="text-[11px] text-[var(--theme-text-muted,#94a3b8)] font-mono bg-[var(--theme-bg,#070c18)] p-2 rounded-lg border border-[var(--theme-border,#141d30)] space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-400">
+                    <span className="font-bold text-[var(--theme-text-muted,#94a3b8)]">
                       ID:{" "}
-                      <code className="text-slate-700 dark:text-slate-300 font-mono">
+                      <code className="text-[var(--theme-text,#f1f5f9)] font-mono">
                         {st.id}
                       </code>
                     </span>
-                    <span className="text-slate-400">
+                    <span className="text-[var(--theme-text-muted,#94a3b8)]">
                       Agent:{" "}
-                      <strong className="text-slate-600 dark:text-slate-300">
+                      <strong className="text-[var(--theme-text,#f1f5f9)]">
                         {assignedAgent?.name || st.assignedAgentId}
                       </strong>
                     </span>
                   </div>
-                  <span className="block text-slate-600 dark:text-slate-300">
+                  <span className="block text-[var(--theme-text,#f1f5f9)]">
                     Goal: {st.goal}
                   </span>
                   {st.result && (
-                    <div className="mt-1.5 pt-1.5 border-t border-slate-200/50 dark:border-slate-800/50 text-slate-700 dark:text-slate-300">
-                      <span className="font-bold block text-[10px] text-slate-400 uppercase tracking-wider">
+                    <div className="mt-1.5 pt-1.5 border-t border-[var(--theme-border,#141d30)] text-[var(--theme-text,#f1f5f9)]">
+                      <span className="font-bold block text-[10px] text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-wider">
                         Summary / Response:
                       </span>
                       <p className="line-clamp-3 text-[11px] whitespace-pre-wrap">

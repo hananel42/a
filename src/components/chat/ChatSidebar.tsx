@@ -156,12 +156,12 @@ export default function ChatSidebar({
     return (
       <aside
         id="chat-sidebar-collapsed"
-        className="w-16 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-full flex flex-col items-center py-4 select-none shrink-0 transition-all duration-300"
+        className="w-16 bg-[var(--theme-sidebar,#0b101f)] border-r border-[var(--theme-border,#141d30)] h-full flex flex-col items-center py-4 select-none shrink-0 transition-all duration-300"
       >
         {/* Toggle Expand button */}
         <button
           onClick={onToggleCollapse}
-          className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-xl transition-all cursor-pointer mb-6 shadow-sm border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-slate-950"
+          className="p-2 hover:bg-[var(--theme-card-hover,#162032)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] rounded-xl transition-all cursor-pointer mb-6 shadow-xs border border-[var(--theme-border,#141d30)] bg-[var(--theme-card,#101726)]"
           title="Expand sidebar"
         >
           <ChevronRight size={16} />
@@ -169,7 +169,7 @@ export default function ChatSidebar({
 
         {/* Short Agents selection */}
         <div className="flex flex-col gap-2.5 items-center w-full flex-1 overflow-y-auto scrollbar-none">
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono select-none">
+          <span className="text-[9px] font-bold text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-widest font-mono select-none">
             AGENTS
           </span>
           {agents.map((ag) => {
@@ -180,8 +180,8 @@ export default function ChatSidebar({
                 onClick={() => handleAgentSelect(ag.id)}
                 className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-indigo-100 dark:bg-indigo-950/60 border border-indigo-400 text-indigo-600 dark:text-indigo-400 scale-105 shadow-sm"
-                    : "bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-slate-500 hover:text-slate-800 dark:hover:text-white hover:scale-105"
+                    ? "bg-[var(--theme-accent-subtle,rgba(16,185,129,0.15))] border border-[var(--theme-accent,#10b981)] text-[var(--theme-accent,#10b981)] scale-105 shadow-xs"
+                    : "bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] hover:scale-105"
                 }`}
                 title={ag.name}
               >
@@ -190,12 +190,12 @@ export default function ChatSidebar({
             );
           })}
 
-          <div className="w-8 h-px bg-slate-200 dark:bg-slate-800 my-4" />
+          <div className="w-8 h-px bg-[var(--theme-border,#141d30)] my-4" />
 
           {/* New Thread trigger shortcut */}
           <button
             onClick={() => onCreateSession(activeAgentId)}
-            className="w-10 h-10 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center cursor-pointer transition-transform hover:scale-110 shadow"
+            className="w-10 h-10 rounded-full bg-[var(--theme-accent,#10b981)] hover:opacity-90 text-white flex items-center justify-center cursor-pointer transition-transform hover:scale-110 shadow-xs"
             title="New Conversation"
           >
             <Plus size={16} />
@@ -206,7 +206,7 @@ export default function ChatSidebar({
         <div className="flex flex-col gap-3 mt-auto pt-4">
           <button
             onClick={handleExportAll}
-            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-xl transition-colors cursor-pointer"
+            className="p-2 hover:bg-[var(--theme-card-hover,#162032)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] rounded-xl transition-colors cursor-pointer"
             title="Export Chats"
           >
             <Download size={15} />
@@ -219,19 +219,19 @@ export default function ChatSidebar({
   return (
     <aside
       id="chat-sidebar-full"
-      className="w-[280px] bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-full flex flex-col text-slate-600 dark:text-slate-400 font-sans select-none shrink-0 overflow-hidden transition-all duration-300"
+      className="w-[280px] bg-[var(--theme-sidebar,#0b101f)] border-r border-[var(--theme-border,#141d30)] h-full flex flex-col text-[var(--theme-text-muted,#94a3b8)] font-sans select-none shrink-0 overflow-hidden transition-all duration-300"
     >
       {/* 1. Header with Collapse button */}
-      <div className="h-14 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-950/40">
+      <div className="h-14 px-4 flex items-center justify-between border-b border-[var(--theme-border,#141d30)] bg-[var(--theme-card,#101726)]">
         <div className="flex items-center gap-2.5">
-          <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full shadow-sm" />
-          <span className="text-sm font-bold text-slate-800 dark:text-white tracking-wide font-sans">
+          <span className="w-2.5 h-2.5 bg-[var(--theme-accent,#10b981)] rounded-full shadow-xs" />
+          <span className="text-sm font-bold text-[var(--theme-text,#f1f5f9)] tracking-wide font-sans">
             Conversational Hub
           </span>
         </div>
         <button
           onClick={onToggleCollapse}
-          className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-lg transition-colors cursor-pointer"
+          className="p-1.5 hover:bg-[var(--theme-card-hover,#162032)] text-[var(--theme-text-muted,#94a3b8)] hover:text-[var(--theme-text,#f1f5f9)] rounded-lg transition-colors cursor-pointer"
           title="Collapse sidebar"
         >
           <ChevronLeft size={16} />
@@ -248,14 +248,14 @@ export default function ChatSidebar({
       <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin">
         {/* Modern Interactive Agent Dropdown Selector */}
         <div className="space-y-2">
-          <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+          <label className="text-[10px] font-bold text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-widest block">
             Active Agent
           </label>
           <div className="relative">
             <select
               value={activeAgentId}
               onChange={(e) => handleAgentSelect(e.target.value)}
-              className="w-full pl-3 pr-8 py-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors shadow-2xs appearance-none cursor-pointer"
+              className="w-full pl-3 pr-8 py-2.5 bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] rounded-xl text-xs font-semibold text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-[var(--theme-accent,#10b981)] transition-colors shadow-2xs appearance-none cursor-pointer"
             >
               {agents.map((ag) => (
                 <option key={ag.id} value={ag.id}>
@@ -263,13 +263,13 @@ export default function ChatSidebar({
                 </option>
               ))}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[var(--theme-text-muted,#94a3b8)]">
               <Users size={12} />
             </div>
           </div>
           {activeAgent && (
-            <div className="p-3 bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100/30 dark:border-indigo-900/10 rounded-xl text-[11px] text-slate-500 dark:text-slate-400 leading-normal">
-              <span className="font-bold text-slate-700 dark:text-slate-300 block mb-0.5">
+            <div className="p-3 bg-[var(--theme-accent-subtle,rgba(16,185,129,0.15))] border border-[var(--theme-border,#141d30)] rounded-xl text-[11px] text-[var(--theme-text-muted,#94a3b8)] leading-normal">
+              <span className="font-bold text-[var(--theme-text,#f1f5f9)] block mb-0.5">
                 {activeAgent.name}
               </span>
               {activeAgent.description}
@@ -280,7 +280,7 @@ export default function ChatSidebar({
         {/* 3. New Conversation Pill Button */}
         <button
           onClick={() => onCreateSession(activeAgentId)}
-          className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-xl font-bold transition-colors text-xs cursor-pointer shadow-sm shadow-indigo-600/10"
+          className="w-full flex items-center justify-center gap-2 bg-[var(--theme-accent,#10b981)] hover:opacity-90 text-white py-2 rounded-xl font-bold transition-colors text-xs cursor-pointer shadow-xs"
         >
           <Plus size={14} className="stroke-[3px]" />
           New Conversation
@@ -290,25 +290,25 @@ export default function ChatSidebar({
         <div className="relative">
           <Search
             size={12}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--theme-text-muted,#94a3b8)]"
           />
           <input
             type="text"
             placeholder="Search threads..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors shadow-sm"
+            className="w-full bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[var(--theme-text,#f1f5f9)] placeholder-[var(--theme-text-muted,#94a3b8)] focus:outline-none focus:border-[var(--theme-accent,#10b981)] transition-colors shadow-xs"
           />
         </div>
 
         {/* 5. Historical Sessions List */}
         <div className="space-y-1.5">
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
+          <span className="text-[10px] font-bold text-[var(--theme-text-muted,#94a3b8)] uppercase tracking-wider block">
             History
           </span>
           <div className="flex flex-col gap-1">
             {filteredSessions.length === 0 ? (
-              <div className="text-xs text-slate-400 italic px-2">
+              <div className="text-xs text-[var(--theme-text-muted,#94a3b8)] italic px-2">
                 No threads found.
               </div>
             ) : (
@@ -318,8 +318,8 @@ export default function ChatSidebar({
                   onClick={() => onSelectSession(session.id)}
                   className={`group relative flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer border ${
                     activeSessionId === session.id
-                      ? "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white shadow-xs"
-                      : "border-transparent hover:bg-slate-100 dark:hover:bg-slate-950 hover:text-slate-800 dark:hover:text-slate-200"
+                      ? "bg-[var(--theme-card,#101726)] border-[var(--theme-accent,#10b981)] text-[var(--theme-text,#f1f5f9)] shadow-xs"
+                      : "border-transparent hover:bg-[var(--theme-card-hover,#162032)] hover:text-[var(--theme-text,#f1f5f9)]"
                   }`}
                 >
                   <div className="flex flex-col min-w-0 pr-6 w-full">
@@ -328,13 +328,13 @@ export default function ChatSidebar({
                         size={11}
                         className={
                           activeSessionId === session.id
-                            ? "text-indigo-600 dark:text-indigo-400"
-                            : "text-slate-400"
+                            ? "text-[var(--theme-accent,#10b981)]"
+                            : "text-[var(--theme-text-muted,#94a3b8)]"
                         }
                       />
                       {session.title || "Untitled Session"}
                     </span>
-                    <span className="text-[9px] text-slate-400 mt-0.5 truncate">
+                    <span className="text-[9px] text-[var(--theme-text-muted,#94a3b8)] mt-0.5 truncate">
                       {agents.find((a) => a.id === session.agentId)?.name ||
                         "Unknown Agent"}
                     </span>

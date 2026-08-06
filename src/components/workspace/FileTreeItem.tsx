@@ -52,6 +52,26 @@ interface FileTreeItemProps {
   moveItem: (itemId: string, targetParentId: string | null) => void;
   processUploadedFiles: (files: File[], parentId: string | null) => void;
   setIsDraggingInternal?: (val: boolean) => void;
+  searchQuery?: string;
+}
+
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  if (!query) return <span>{text}</span>;
+  const escaped = query.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  return (
+    <span>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-sky-500/30 text-sky-200 px-0.5 rounded font-semibold">
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </span>
+  );
 }
 
 export function getFileIcon(name: string) {
@@ -95,10 +115,14 @@ export default function FileTreeItem({
   moveItem,
   processUploadedFiles,
   setIsDraggingInternal,
+  searchQuery,
 }: FileTreeItemProps) {
   const isFolder = item.type === "folder";
   const isActive = item.id === activeItemId;
   const isEditing = item.id === editingId;
+
+  // Auto expand when searching
+  const isExpanded = searchQuery ? true : item.isExpanded;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -172,7 +196,7 @@ export default function FileTreeItem({
       >
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {isFolder ? (
-            item.isExpanded ? (
+            isExpanded ? (
               <ChevronDown size={13} className="text-slate-500 shrink-0" />
             ) : (
               <ChevronRight size={13} className="text-slate-500 shrink-0" />
@@ -181,7 +205,7 @@ export default function FileTreeItem({
             <div className="w-3 shrink-0" />
           )}
           {isFolder ? (
-            item.isExpanded ? (
+            isExpanded ? (
               <FolderOpen size={14} className="text-amber-400 shrink-0" />
             ) : (
               <Folder size={14} className="text-amber-400 shrink-0" />
@@ -204,7 +228,9 @@ export default function FileTreeItem({
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
-            <span className="truncate pr-2">{item.name}</span>
+            <span className="truncate pr-2">
+              <HighlightMatch text={item.name} query={searchQuery || ""} />
+            </span>
           )}
         </div>
 
@@ -259,7 +285,7 @@ export default function FileTreeItem({
                     />
                     {/* Floating contextual action menu */}
                     <div
-                      className="absolute right-0 top-6 z-[1000] min-w-[120px] bg-[#0c1322] border border-[#1e293b] rounded-lg shadow-2xl p-1 flex flex-col text-[11px] text-slate-300 font-medium"
+                      className="absolute right-0 top-6 z-[1000] min-w-[120px] bg-[var(--theme-card,#101726)] border border-[var(--theme-border,#141d30)] rounded-lg shadow-2xl p-1 flex flex-col text-[11px] text-[var(--theme-text,#f1f5f9)] font-medium"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {isFolder && (
@@ -267,30 +293,32 @@ export default function FileTreeItem({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              if (!item.isExpanded) toggleFolderExpanded(item.id);
                               setInlineCreateType("file");
                               setInlineCreateParentId(item.id);
                               setInlineCreateValue("");
                               setIsMenuOpen(false);
                             }}
-                            className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-slate-800/80 rounded-md text-left hover:text-[#10b981] transition-colors"
+                            className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-[var(--theme-card-hover,#1a2438)] rounded-md text-left hover:text-[var(--theme-accent,#6366f1)] transition-colors cursor-pointer"
                           >
-                            <Plus size={11} className="text-[#10b981]" />
+                            <Plus size={11} className="text-[var(--theme-accent,#6366f1)]" />
                             <span>New File</span>
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              if (!item.isExpanded) toggleFolderExpanded(item.id);
                               setInlineCreateType("folder");
                               setInlineCreateParentId(item.id);
                               setInlineCreateValue("");
                               setIsMenuOpen(false);
                             }}
-                            className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-slate-800/80 rounded-md text-left hover:text-amber-400 transition-colors"
+                            className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-[var(--theme-card-hover,#1a2438)] rounded-md text-left hover:text-amber-400 transition-colors cursor-pointer"
                           >
                             <FolderPlus size={11} className="text-amber-400" />
                             <span>New Folder</span>
                           </button>
-                          <div className="border-t border-slate-800/60 my-1" />
+                          <div className="border-t border-[var(--theme-border,#141d30)] my-1" />
                         </>
                       )}
                       {!isFolder && (
@@ -300,12 +328,12 @@ export default function FileTreeItem({
                               handleDownloadItem(item, e);
                               setIsMenuOpen(false);
                             }}
-                            className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-slate-800/80 rounded-md text-left hover:text-[#10b981] transition-colors"
+                            className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-[var(--theme-card-hover,#1a2438)] rounded-md text-left hover:text-[var(--theme-accent,#6366f1)] transition-colors cursor-pointer"
                           >
-                            <Download size={11} className="text-[#10b981]" />
+                            <Download size={11} className="text-[var(--theme-accent,#6366f1)]" />
                             <span>Download</span>
                           </button>
-                          <div className="border-t border-slate-800/60 my-1" />
+                          <div className="border-t border-[var(--theme-border,#141d30)] my-1" />
                         </>
                       )}
                       {!localFolder && (
@@ -314,9 +342,9 @@ export default function FileTreeItem({
                             handleStartRename(item, e);
                             setIsMenuOpen(false);
                           }}
-                          className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-slate-800/80 rounded-md text-left hover:text-white transition-colors"
+                          className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-[var(--theme-card-hover,#1a2438)] rounded-md text-left hover:text-[var(--theme-text,#f1f5f9)] transition-colors cursor-pointer"
                         >
-                          <Edit3 size={11} className="text-slate-400" />
+                          <Edit3 size={11} className="text-[var(--theme-text-muted,#94a3b8)]" />
                           <span>Rename</span>
                         </button>
                       )}
@@ -326,9 +354,9 @@ export default function FileTreeItem({
                           setItemToDeleteId(item.id);
                           setIsMenuOpen(false);
                         }}
-                        className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-red-950/40 text-red-500 hover:text-red-400 rounded-md text-left transition-colors"
+                        className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 rounded-md text-left transition-colors cursor-pointer"
                       >
-                        <Trash2 size={11} className="text-red-400" />
+                        <Trash2 size={11} className="text-rose-400" />
                         <span>Delete</span>
                       </button>
                     </div>
@@ -340,7 +368,7 @@ export default function FileTreeItem({
         )}
       </div>
 
-      {isFolder && item.isExpanded && (
+      {isFolder && isExpanded && (
         <div className="flex flex-col border-l border-[#151f32]/60 ml-[14px] pl-2 space-y-0.5 mt-0.5">
           {inlineCreateParentId === item.id && (
             <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-[#0b101f] border border-[#10b981]/30">

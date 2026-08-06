@@ -202,26 +202,24 @@ export default function ChatTab({
       />
 
       {/* 2. Chat Feed & input panels wrapper */}
-      <div
-        className={`flex-1 flex flex-col min-w-0 h-full relative transition-colors ${getThemeBackgroundClasses(previewStyle)}`}
-      >
+      <div className="flex-1 flex flex-col min-w-0 h-full relative transition-colors bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)]">
         {/* Active Session Header details */}
-        <div className="px-5 py-3.5 border-b border-slate-200/60 dark:border-slate-800/60 bg-transparent backdrop-blur-md flex items-center justify-between select-none shrink-0">
+        <div className="px-5 py-3.5 border-b border-[var(--theme-border,#141d30)] bg-[var(--theme-card,#101726)] flex items-center justify-between select-none shrink-0">
           {activeSession ? (
             <div className="flex items-center gap-3">
-              <span className="w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shrink-0">
+              <span className="w-8 h-8 flex items-center justify-center bg-[var(--theme-sidebar,#0b101f)] border border-[var(--theme-border,#141d30)] rounded-xl shrink-0">
                 {renderAgentAvatar(
                   activeAgent?.avatar,
                   activeAgent?.name || "Agent",
                 )}
               </span>
               <div>
-                <h2 className="text-xs font-bold text-slate-800 dark:text-white tracking-wide uppercase font-sans">
+                <h2 className="text-xs font-bold text-[var(--theme-text,#f1f5f9)] tracking-wide uppercase font-sans">
                   {activeAgent?.name || "Agent"}
                 </h2>
-                <p className="text-[10px] text-slate-500 mt-0.5 font-mono">
+                <p className="text-[10px] text-[var(--theme-text-muted,#94a3b8)] mt-0.5 font-mono">
                   ACTIVE AGENT ID:{" "}
-                  <span className="text-slate-400 dark:text-slate-300 font-semibold">
+                  <span className="text-[var(--theme-text,#f1f5f9)] font-semibold">
                     {activeAgent?.id}
                   </span>
                 </p>
@@ -229,9 +227,9 @@ export default function ChatTab({
             </div>
           ) : (
             <div className="flex items-center gap-2.5">
-              <span className="text-sm font-mono text-indigo-500">&gt;_</span>
+              <span className="text-sm font-mono text-[var(--theme-accent,#10b981)]">&gt;_</span>
               <div>
-                <h2 className="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase font-mono">
+                <h2 className="text-xs font-bold text-[var(--theme-text-muted,#94a3b8)] tracking-wider uppercase font-mono">
                   STANDBY
                 </h2>
               </div>
