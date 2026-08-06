@@ -215,4 +215,4 @@ To boot up this multi-agent sandbox environment locally:
 
 ---
 
-_Created and maintained with extreme precision in the Multi-Agent Workspace._ 
+_Created and maintained with extreme precision in the Multi-Agent Workspace._
