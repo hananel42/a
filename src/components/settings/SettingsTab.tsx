@@ -92,9 +92,7 @@ export default function SettingsTab({
   const [newCustomModelInput, setNewCustomModelInput] = useState("");
 
   // Feedback states
-  const [savedKey, setSavedKey] = useState(false);
-  const [savedBaseUrl, setSavedBaseUrl] = useState(false);
-  const [savedTemp, setSavedTemp] = useState(false);
+  const [savedConnectionSettings, setSavedConnectionSettings] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Connection Presets State
@@ -111,27 +109,14 @@ export default function SettingsTab({
     window.location.reload();
   };
 
-  const handleSaveKey = (e?: React.FormEvent) => {
+  const handleSaveConnectionSettings = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setApiKey(localKey);
-    onRetryConnection();
-    setSavedKey(true);
-    setTimeout(() => setSavedKey(false), 2000);
-  };
-
-  const handleSaveBaseUrl = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
     setApiBaseUrl(localBaseUrl);
-    onRetryConnection();
-    setSavedBaseUrl(true);
-    setTimeout(() => setSavedBaseUrl(false), 2000);
-  };
-
-  const handleSaveTemp = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
     localStorage.setItem("agent_hub_temperature", localTemperature);
-    setSavedTemp(true);
-    setTimeout(() => setSavedTemp(false), 2000);
+    onRetryConnection();
+    setSavedConnectionSettings(true);
+    setTimeout(() => setSavedConnectionSettings(false), 2500);
   };
 
   const handleAddCustomModel = (e: React.FormEvent) => {
@@ -425,12 +410,12 @@ export default function SettingsTab({
             )}
           </div>
 
-          <div className="space-y-4 pt-1 bg-[var(--theme-card,#101726)] p-5 rounded-2xl border border-[var(--theme-border,#141d30)] shadow-xs">
+          <form
+            onSubmit={handleSaveConnectionSettings}
+            className="space-y-4 pt-1 bg-[var(--theme-card,#101726)] p-5 rounded-2xl border border-[var(--theme-border,#141d30)] shadow-xs"
+          >
             {/* Secret API Token Row */}
-            <form
-              onSubmit={handleSaveKey}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-            >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="sm:w-1/3">
                 <label className="text-xs font-medium text-[var(--theme-text,#f1f5f9)]">
                   Secret API Token
@@ -439,29 +424,19 @@ export default function SettingsTab({
                   Bearer key for remote gateway authentication.
                 </p>
               </div>
-              <div className="flex gap-2 sm:w-2/3 max-w-md">
+              <div className="sm:w-2/3 max-w-md">
                 <input
                   type="password"
                   placeholder="Optional for local servers"
                   value={localKey}
                   onChange={(e) => setLocalKey(e.target.value)}
-                  onBlur={() => handleSaveKey()}
-                  className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-[var(--theme-accent,#10b981)] transition-colors"
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-[var(--theme-accent,#10b981)] transition-colors"
                 />
-                <button
-                  type="submit"
-                  className="px-3.5 py-1.5 bg-[var(--theme-accent,#10b981)] hover:opacity-90 text-white text-xs font-medium rounded-lg cursor-pointer transition-colors shrink-0"
-                >
-                  {savedKey ? "Saved" : "Save Key"}
-                </button>
               </div>
-            </form>
+            </div>
 
             {/* Base URL Endpoint Row */}
-            <form
-              onSubmit={handleSaveBaseUrl}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/50"
-            >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/50">
               <div className="sm:w-1/3">
                 <label className="text-xs font-medium text-slate-800 dark:text-slate-200">
                   Base URL Endpoint
@@ -470,23 +445,16 @@ export default function SettingsTab({
                   OpenAI compatible API base endpoint.
                 </p>
               </div>
-              <div className="flex gap-2 sm:w-2/3 max-w-md">
+              <div className="sm:w-2/3 max-w-md">
                 <input
                   type="text"
                   placeholder="e.g. http://localhost:1234/v1"
                   value={localBaseUrl}
                   onChange={(e) => setLocalBaseUrl(e.target.value)}
-                  onBlur={() => handleSaveBaseUrl()}
-                  className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors font-mono"
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors font-mono"
                 />
-                <button
-                  type="submit"
-                  className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg cursor-pointer transition-colors shrink-0"
-                >
-                  {savedBaseUrl ? "Saved" : "Apply URL"}
-                </button>
               </div>
-            </form>
+            </div>
 
             {/* Target Model & Temperature */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100 dark:border-slate-800/50">
@@ -556,10 +524,7 @@ export default function SettingsTab({
                       )}
                     </div>
 
-                    <form
-                      onSubmit={handleAddCustomModel}
-                      className="flex gap-1.5"
-                    >
+                    <div className="flex gap-1.5">
                       <input
                         type="text"
                         placeholder="Add custom model (e.g. gpt-4o)"
@@ -568,40 +533,32 @@ export default function SettingsTab({
                         className="flex-1 px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono text-[11px]"
                       />
                       <button
-                        type="submit"
+                        type="button"
+                        onClick={handleAddCustomModel}
                         disabled={!newCustomModelInput.trim()}
                         className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 text-xs rounded-lg cursor-pointer transition-colors shrink-0"
                       >
                         + Add
                       </button>
-                    </form>
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Temperature */}
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-800 dark:text-slate-200 block">
                   Temperature
                 </label>
-                <form onSubmit={handleSaveTemp} className="flex gap-2">
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="2"
-                    value={localTemperature}
-                    onChange={(e) => setLocalTemperature(e.target.value)}
-                    onBlur={() => handleSaveTemp()}
-                    className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                  <button
-                    type="submit"
-                    className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg cursor-pointer transition-colors shrink-0"
-                  >
-                    {savedTemp ? "Saved" : "Set"}
-                  </button>
-                </form>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="2"
+                  value={localTemperature}
+                  onChange={(e) => setLocalTemperature(e.target.value)}
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
               </div>
             </div>
 
@@ -613,7 +570,31 @@ export default function SettingsTab({
                 </span>
               </div>
             )}
-          </div>
+
+            {/* Unified Save Action Button */}
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="text-xs">
+                {savedConnectionSettings ? (
+                  <span className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400 animate-fade-in">
+                    <Check size={14} />
+                    <span>Connection settings saved & endpoint updated!</span>
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-[var(--theme-text-muted,#94a3b8)]">
+                    Applies API Key, Base URL, and Temperature parameters simultaneously.
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors shadow-xs flex items-center justify-center gap-2 shrink-0"
+              >
+                <Save size={14} />
+                <span>Save Connection Settings</span>
+              </button>
+            </div>
+          </form>
 
           {/* Endpoint Connection Error Alert */}
           {connectionStatus === "offline" && connectionErrorMessage && (

@@ -24,6 +24,7 @@ interface ChatTabProps {
   apiBaseUrl: string;
   apiKey: string;
   model: string;
+  fetchedModels?: string[];
   workspaceItems: any[];
   createWorkspaceFile: (
     name: string,
@@ -67,6 +68,7 @@ export default function ChatTab({
   apiBaseUrl,
   apiKey,
   model,
+  fetchedModels = [],
   workspaceItems,
   createWorkspaceFile,
   createWorkspaceFolder,
@@ -229,28 +231,19 @@ export default function ChatTab({
                 </div>
               </div>
 
-              {/* Model status indicator */}
-              <div className="text-[10px] font-mono shrink-0">
-                {activeAgent?.defaultModel ? (
-                  isModelSupported(activeAgent.defaultModel) ? (
-                    <span className="px-2 py-0.5 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 font-semibold">
-                      MODEL: {activeAgent.defaultModel}
-                    </span>
-                  ) : (
+              {/* Model status indicator: ONLY show if activeAgent has a specific defaultModel AND it is currently unavailable */}
+              {activeAgent?.defaultModel &&
+                !isModelSupported(activeAgent.defaultModel, fetchedModels) && (
+                  <div className="text-[10px] font-mono shrink-0">
                     <span
                       className="px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800/60 font-semibold flex items-center gap-1"
-                      title={`Agent model "${activeAgent.defaultModel}" unavailable. Falling back to global active model.`}
+                      title={`Agent model "${activeAgent.defaultModel}" is unavailable. Falling back to global active model (${model}).`}
                     >
                       <AlertTriangle size={11} className="text-amber-400" />
-                      MODEL: {activeAgent.defaultModel} (Fallback: {model})
+                      MODEL: {activeAgent.defaultModel} (Unavailable - Fallback: {model})
                     </span>
-                  )
-                ) : (
-                  <span className="px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800 font-medium">
-                    MODEL: Global ({model})
-                  </span>
+                  </div>
                 )}
-              </div>
             </div>
           ) : (
             <div className="flex items-center gap-2.5">

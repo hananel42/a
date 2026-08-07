@@ -124,6 +124,8 @@ export const THINKING_MODEL_IDS = AVAILABLE_MODELS.filter(
   (m) => m.supportsReasoning,
 ).map((m) => m.id);
 
+import { getSavedCustomModels } from "../utils/customModels";
+
 /**
  * Helper to check if a model ID is valid and available (either in curated models or custom model list).
  */
@@ -134,6 +136,10 @@ export function isModelSupported(modelId?: string, customModels?: string[]): boo
     return true;
   }
   if (customModels && customModels.some((m) => m.toLowerCase() === cleaned)) {
+    return true;
+  }
+  const savedCustom = getSavedCustomModels();
+  if (savedCustom.some((m) => m.toLowerCase() === cleaned)) {
     return true;
   }
   return false;

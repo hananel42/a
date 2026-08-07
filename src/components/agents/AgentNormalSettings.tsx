@@ -110,6 +110,12 @@ export default function AgentNormalSettings({
   includeMemories,
   onChangeIncludeMemories,
 }: AgentNormalSettingsProps) {
+  const [isCustomModelInput, setIsCustomModelInput] = React.useState(() => {
+    if (!defaultModel) return false;
+    const isFetched = fetchedModels && fetchedModels.includes(defaultModel);
+    return !isFetched;
+  });
+
   const handleAddExamplePrompt = () => {
     onChangeExamplePrompts([...examplePrompts, ""]);
   };
@@ -158,25 +164,68 @@ export default function AgentNormalSettings({
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">
-            Default Model Override
-          </label>
-          <select
-            value={defaultModel}
-            onChange={(e) => onChangeDefaultModel(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-sans cursor-pointer"
-          >
-            <option value="">Global Default (Inherit active model)</option>
-            {defaultModel && !fetchedModels.includes(defaultModel) && (
-              <option value={defaultModel}>{defaultModel} (Custom Override)</option>
-            )}
-            {fetchedModels && fetchedModels.length > 0 &&
-              fetchedModels.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-          </select>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              Default Model Override
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !isCustomModelInput;
+                setIsCustomModelInput(next);
+                if (!next && defaultModel && !fetchedModels.includes(defaultModel)) {
+                  onChangeDefaultModel("");
+                }
+              }}
+              className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+            >
+              {isCustomModelInput ? "Select List" : "+ Custom Model"}
+            </button>
+          </div>
+
+          {isCustomModelInput ? (
+            <div className="space-y-1">
+              <input
+                type="text"
+                placeholder="e.g. llama-3.3-70b, deepseek-r1:14b, custom-model"
+                value={defaultModel}
+                onChange={(e) => onChangeDefaultModel(e.target.value)}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-mono"
+              />
+              <p className="text-[10px] text-slate-400">
+                Type any custom model string (for offline or third-party providers).
+              </p>
+            </div>
+          ) : (
+            <select
+              value={defaultModel}
+              onChange={(e) => {
+                if (e.target.value === "__custom__") {
+                  setIsCustomModelInput(true);
+                  onChangeDefaultModel("");
+                } else {
+                  onChangeDefaultModel(e.target.value);
+                }
+              }}
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-sans cursor-pointer"
+            >
+              <option value="">Global Default (Inherit active model)</option>
+              {defaultModel &&
+                !fetchedModels.includes(defaultModel) && (
+                  <option value={defaultModel}>
+                    {defaultModel} (Custom Override)
+                  </option>
+                )}
+              {fetchedModels &&
+                fetchedModels.length > 0 &&
+                fetchedModels.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              <option value="__custom__">-- Type Custom Model Name... --</option>
+            </select>
+          )}
         </div>
       </div>
 

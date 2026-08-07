@@ -279,6 +279,7 @@ export default function App() {
             apiKey={apiKey}
             apiBaseUrl={apiBaseUrl}
             model={model}
+            fetchedModels={connection.models}
             workspaceItems={workspace.items}
             createWorkspaceFile={workspace.createFile}
             createWorkspaceFolder={workspace.createFolder}
