@@ -331,10 +331,11 @@ export async function streamOpenAIChat({
           const index = tc.index ?? 0;
           if (index > 0) continue; // Ignore any secondary tool call
           if (toolCallsBuffer[index] === undefined) {
+            if (!tc.id) {
+              throw new Error("Received tool call chunk without an ID from the model.");
+            }
             toolCallsBuffer[index] = {
-              id:
-                tc.id ||
-                `call-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+              id: tc.id,
               name: tc.function?.name || "",
               arguments: "",
             };
@@ -362,8 +363,8 @@ export async function streamOpenAIChat({
 
     // Return final aggregated text, reasoning, and tool calls
     const toolCalls = Object.entries(toolCallsBuffer)
-      .map(([idx, t]) => ({
-        id: t.id || `call-${idx}`,
+      .map(([_, t]) => ({
+        id: t.id,
         type: "function" as const,
         function: {
           name: t.name || "",

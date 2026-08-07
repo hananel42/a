@@ -20,8 +20,7 @@ function convertWikipediaHtmlToMarkdown(htmlString: string, baseUrl: string): st
     const contentRoot = doc.querySelector(".mw-parser-output") || doc.body;
     return cleanAndFormatNode(contentRoot, baseUrl).trim();
   } catch (err) {
-    // Graceful fallback: basic tag strip if DOMParser fails
-    return htmlString.replace(/<[^>]+>/g, "").trim();
+    throw new Error(`Failed to parse HTML content: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
@@ -308,25 +307,7 @@ export const searchWikipediaTool: ToolModule = {
         const resolvedTitle = aData?.parse?.title || titleToFetch;
 
         if (!htmlContent) {
-          // Fallback to standard extracts if parse fails
-          const fallbackUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts|info&inprop=url&explaintext=true&titles=${encodeURIComponent(titleToFetch)}&format=json&origin=*`;
-          const fRes = await fetch(fallbackUrl);
-          if (fRes.ok) {
-            const fData = await fRes.json();
-            const pages = fData?.query?.pages;
-            if (pages) {
-              const pageKey = Object.keys(pages)[0];
-              const page = pages[pageKey];
-              if (page && page.extract) {
-                return truncateOutput(
-                  `=== WIKIPEDIA ARTICLE: "${page.title}" (Plain Text Fallback) ===\n\n${page.extract}`,
-                  8000,
-                  `Wikipedia Article "${page.title}"`,
-                );
-              }
-            }
-          }
-          return `No article found or empty content for "${titleToFetch}" on ${lang}.wikipedia.org.`;
+          throw new Error(`No article HTML content found for "${titleToFetch}" on ${lang}.wikipedia.org.`);
         }
 
         const baseUrl = `https://${lang}.wikipedia.org`;

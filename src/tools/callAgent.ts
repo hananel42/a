@@ -73,38 +73,7 @@ export const callAgentTool: ToolModule = {
         return JSON.stringify(res, null, 2);
       }
 
-      if (typeof res === "string") {
-        try {
-          const parsed = JSON.parse(res);
-          if (
-            parsed &&
-            typeof parsed === "object" &&
-            parsed.status &&
-            parsed.msg
-          ) {
-            return JSON.stringify(parsed, null, 2);
-          }
-        } catch {}
-        return JSON.stringify(
-          {
-            status: "completed",
-            id: resumeId || `sub-${Math.random().toString(36).substring(2, 8)}`,
-            msg: res,
-          },
-          null,
-          2,
-        );
-      }
-
-      return JSON.stringify(
-        {
-          status: "completed",
-          id: resumeId || `sub-${Math.random().toString(36).substring(2, 8)}`,
-          msg: String(res),
-        },
-        null,
-        2,
-      );
+      throw new Error(`Unexpected response format from agent "${agentId}": Expected object but got ${typeof res}`);
     } catch (e: any) {
       return JSON.stringify(
         {

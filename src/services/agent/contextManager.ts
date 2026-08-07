@@ -172,48 +172,8 @@ export function parsePartialJSON(str: string): Record<string, any> {
     if (parsed && typeof parsed === "object") {
       return parsed;
     }
-  } catch {
-    // Fall through to fallback
+    throw new Error("Parsed result is not an object");
+  } catch (err: any) {
+    throw new Error(`Failed to parse partial JSON: ${err.message || String(err)}`);
   }
-
-  // 3. Fallback string extraction for key fields
-  const res: Record<string, any> = {};
-  const keysToExtract = [
-    "TargetFile",
-    "targetFile",
-    "path",
-    "filePath",
-    "target_file",
-    "filename",
-    "SourcePath",
-    "DestinationPath",
-    "content",
-    "code",
-    "script",
-    "replacementContent",
-    "ReplacementContent",
-    "command",
-    "query",
-    "message",
-    "agentId",
-    "name",
-    "instructions",
-    "description",
-    "startLine",
-    "endLine",
-    "keyword",
-    "url",
-    "target",
-    "text",
-    "body",
-  ];
-
-  for (const key of keysToExtract) {
-    const val = extractPartialString(str, key);
-    if (val !== undefined) {
-      res[key] = val;
-    }
-  }
-
-  return res;
 }
