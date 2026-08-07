@@ -119,7 +119,7 @@ export function buildAgentSystemPrompt({
     ? config.systemPromptTemplate 
     : DEFAULT_SYSTEM_PROMPT_TEMPLATE;
 
-  if (!tmpl.includes("EXECUTION FLOW DECISION MATRIX")) {
+  if (!tmpl.includes("TASK EXECUTION RULES")) {
     tmpl = `${DEFAULT_SYSTEM_PROMPT_PREFIX}\n\n${tmpl}`;
   }
 

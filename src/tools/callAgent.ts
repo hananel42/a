@@ -10,24 +10,24 @@ export const callAgentTool: ToolModule = {
   schema: {
     name: "call_agent",
     description:
-      "Trigger another specialized agent to execute a sub-task, or resume a previous conversation session by resume-id.",
+      "Trigger another agent OR call yourself to execute a sub-task in an isolated clean context window.",
     parameters: {
       type: "object",
       properties: {
         "agent-id": {
           type: "string",
           description:
-            'Target agent ID',
+            "Target agent ID (e.g. 'code-architect', 'research-analyst', 'admin', or your own agent ID to call yourself).",
         },
         prompt: {
           type: "string",
           description:
-            "Directive, instructions, or task request for the target agent.",
+            "Directive or task request for the target agent.",
         },
         "resume-id": {
           type: "string",
           description:
-            "Optional. Unique conversation ID to resume or continue a previous conversation with that agent.",
+            "Optional. Unique conversation ID to resume a previous conversation.",
         },
       },
       required: ["agent-id", "prompt"],
@@ -35,8 +35,19 @@ export const callAgentTool: ToolModule = {
   },
 
   async execute(args, context) {
-    const agentId = args["agent-id"] || args.agentId;
-    const prompt = args.prompt || args.message;
+    const agentId =
+      args["agent-id"] ||
+      args.agentId ||
+      args["agent_id"] ||
+      args.target_agent_id ||
+      args.agent ||
+      args.id;
+    const prompt =
+      args.prompt ||
+      args.message ||
+      args.instructions ||
+      args.task ||
+      args.query;
     const resumeId = args["resume-id"] || args.resumeId || args.taskId;
 
     if (!agentId || typeof agentId !== "string") {

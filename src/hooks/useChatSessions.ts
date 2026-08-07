@@ -84,6 +84,10 @@ export function useChatSessions({
     Record<string, (allowed: boolean) => void>
   >({});
   const subHistoriesRef = useRef<Record<string, Message[]>>({});
+  const agentsRef = useRef<Agent[]>(agents);
+  useEffect(() => {
+    agentsRef.current = agents;
+  }, [agents]);
 
   const hasLoadedRef = useRef(false);
 
@@ -318,10 +322,11 @@ export function useChatSessions({
       return next;
     });
 
+    const currentAgentsList = agentsRef.current.length > 0 ? agentsRef.current : agents;
     try {
       await runAgentConversation({
         agent,
-        allAgents: agents,
+        allAgents: currentAgentsList,
         chatHistory: historyToFeed,
         apiKey,
         baseURL: apiBaseUrl,
@@ -333,7 +338,7 @@ export function useChatSessions({
           createFolder: createWorkspaceFolder,
           updateFileContent: updateWorkspaceFileContent,
           deleteFile: deleteWorkspaceItem,
-          allAgents: agents,
+          allAgents: currentAgentsList,
           onCreateAgent: async (
             name,
             desc,
@@ -375,7 +380,8 @@ export function useChatSessions({
                 subSteps?: ToolCallStep[],
               ) => void,
             ): Promise<{ status: string; id: string; msg: string }> => {
-              const targetAgent = agents.find(
+              const currentAgents = agentsRef.current.length > 0 ? agentsRef.current : agents;
+              const targetAgent = currentAgents.find(
                 (a) =>
                   a.id.toLowerCase() === subTargetId.toLowerCase() ||
                   a.name.toLowerCase() === subTargetId.toLowerCase(),
@@ -384,7 +390,7 @@ export function useChatSessions({
                 return {
                   status: "failed",
                   id: subResumeId || "",
-                  msg: `Error: Sub-agent "${subTargetId}" not found. Available agents: ${agents.map((a) => a.id).join(", ")}`,
+                  msg: `Error: Sub-agent "${subTargetId}" not found. Available agents: ${currentAgents.map((a) => a.id).join(", ")}`,
                 };
               }
 
@@ -407,7 +413,7 @@ export function useChatSessions({
               try {
                 const subResultText = await runAgentConversation({
                   agent: targetAgent,
-                  allAgents: agents,
+                  allAgents: currentAgents,
                   chatHistory: historyToFeed,
                   apiKey,
                   baseURL: apiBaseUrl,
@@ -419,7 +425,7 @@ export function useChatSessions({
                     createFolder: createWorkspaceFolder,
                     updateFileContent: updateWorkspaceFileContent,
                     deleteFile: deleteWorkspaceItem,
-                    allAgents: agents,
+                    allAgents: currentAgents,
                     onCreateAgent: async (
                       name,
                       desc,

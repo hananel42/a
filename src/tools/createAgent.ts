@@ -61,16 +61,23 @@ export const createAgentTool: ToolModule = {
   },
 
   async execute(args, context) {
-    const {
-      name,
-      description,
-      instructions,
-      allowedTools = ["read_file", "list_dir"],
-      allowedReadPaths = ["/"],
-      allowedWritePaths = ["/"],
-      avatar = "brain",
-      defaultModel,
-    } = args;
+    const name = args.name || args.agentName || args.agent_name;
+    const description =
+      args.description || args.desc || (name ? `Specialized ${name} agent` : "");
+    const instructions =
+      args.instructions || args.prompt || args.systemPrompt || args.rules;
+    const rawTools = args.allowedTools || args.allowed_tools || args.tools;
+    const allowedTools = Array.isArray(rawTools)
+      ? rawTools
+      : ["read_file", "list_dir", "call_agent"];
+    const rawRead =
+      args.allowedReadPaths || args.allowed_read_paths || args.read_paths;
+    const allowedReadPaths = Array.isArray(rawRead) ? rawRead : ["/"];
+    const rawWrite =
+      args.allowedWritePaths || args.allowed_write_paths || args.write_paths;
+    const allowedWritePaths = Array.isArray(rawWrite) ? rawWrite : ["/"];
+    const avatar = args.avatar || "brain";
+    const defaultModel = args.defaultModel || args.model;
 
     if (!name || typeof name !== "string") {
       return 'Error: Invalid or missing agent "name".';

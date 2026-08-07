@@ -4,7 +4,7 @@
  * and workspace file system synchronization.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Agent } from "../types/agent";
 import { defaultAgents, DEFAULT_PERMISSIONS } from "../data/defaultAgents";
 import {
@@ -17,6 +17,8 @@ export function useAgentSync(
   showNotification: (m: string, t?: "success" | "error") => void,
 ) {
   const [agents, setAgents] = useState<Agent[]>([]);
+  const agentsRef = useRef<Agent[]>([]);
+  agentsRef.current = agents;
 
   useEffect(() => {
     const saved = localStorage.getItem(AGENTS_STORAGE_KEY);
@@ -28,12 +30,15 @@ export function useAgentSync(
         );
         const updated = [...defaultAgents, ...customAgents];
         setAgents(updated);
+        agentsRef.current = updated;
         localStorage.setItem(AGENTS_STORAGE_KEY, JSON.stringify(updated));
       } catch {
         setAgents(defaultAgents);
+        agentsRef.current = defaultAgents;
       }
     } else {
       setAgents(defaultAgents);
+      agentsRef.current = defaultAgents;
       localStorage.setItem(AGENTS_STORAGE_KEY, JSON.stringify(defaultAgents));
     }
   }, []);
@@ -46,6 +51,7 @@ export function useAgentSync(
 
     if (agentsChanged) {
       setAgents(updatedAgents);
+      agentsRef.current = updatedAgents;
       localStorage.setItem(AGENTS_STORAGE_KEY, JSON.stringify(updatedAgents));
     }
 
@@ -72,8 +78,37 @@ export function useAgentSync(
       .trim()
       .replace(/[^a-z0-9]+/g, "-");
 
-    if (agents.some((a) => a.id === cleanId)) {
-      showNotification("An agent with that name already exists.", "error");
+    const currentAgents = agentsRef.current.length > 0 ? agentsRef.current : agents;
+    const existingIndex = currentAgents.findIndex((a) => a.id === cleanId);
+
+    if (existingIndex >= 0) {
+      const existingAgent = currentAgents[existingIndex];
+      const updatedAgent: Agent = {
+        ...existingAgent,
+        name,
+        description: desc || existingAgent.description,
+        instructions: instructions || existingAgent.instructions,
+        avatar: avatar || existingAgent.avatar || "brain",
+        permissions: {
+          ...existingAgent.permissions,
+          allowedTools: tools.length > 0 ? tools : existingAgent.permissions.allowedTools,
+          allowedReadPaths,
+          allowedWritePaths,
+          allowAgentFolderAccess:
+            allowAgentFolderAccess !== undefined
+              ? allowAgentFolderAccess
+              : existingAgent.permissions.allowAgentFolderAccess,
+        },
+        defaultModel: defaultModel || existingAgent.defaultModel,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const updated = [...currentAgents];
+      updated[existingIndex] = updatedAgent;
+      agentsRef.current = updated;
+      setAgents(updated);
+      localStorage.setItem(AGENTS_STORAGE_KEY, JSON.stringify(updated));
+      showNotification(`Agent "${name}" updated successfully!`, "success");
       return cleanId;
     }
 
@@ -98,11 +133,12 @@ export function useAgentSync(
       updatedAt: new Date().toISOString(),
     };
 
-    const updated = [...agents, newAgent];
+    const updated = [...currentAgents, newAgent];
+    agentsRef.current = updated;
     setAgents(updated);
     localStorage.setItem(AGENTS_STORAGE_KEY, JSON.stringify(updated));
     showNotification(
-      `Agent "${name}" successfully compiled and synchronized!`,
+      `Agent "${name}" created and synced successfully!`,
       "success",
     );
     return cleanId;
