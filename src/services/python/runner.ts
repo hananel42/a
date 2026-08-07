@@ -38,7 +38,26 @@ async function syncModifiedFilesToWorkspace(
   if (!modifiedFiles || modifiedFiles.length === 0) return syncedPaths;
 
   for (const mod of modifiedFiles) {
-    const cleanPath = mod.path.startsWith("/") ? mod.path.slice(1) : mod.path;
+    let cleanPath = mod.path.replace(/\\/g, "/");
+    if (cleanPath.startsWith("/")) {
+      cleanPath = cleanPath.slice(1);
+    }
+    const rawSegments = cleanPath.split("/");
+    const resolvedSegments: string[] = [];
+    for (const segment of rawSegments) {
+      if (!segment || segment === ".") {
+        continue;
+      }
+      if (segment === "..") {
+        resolvedSegments.pop();
+      } else {
+        resolvedSegments.push(segment);
+      }
+    }
+    cleanPath = resolvedSegments.join("/");
+
+    if (!cleanPath) continue;
+
     const existingItem = findItemByPath(cleanPath, items, true);
 
     if (existingItem && existingItem.type === "file") {

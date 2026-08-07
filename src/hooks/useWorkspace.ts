@@ -474,12 +474,31 @@ export function useWorkspace(
       const itemToMove = prev.find((i) => i.id === itemId);
       if (!itemToMove) return prev;
 
+      if (itemToMove.parentId === targetParentId) return prev;
+
       if (itemToMove.type === "folder") {
         const descIds = getDescendants(itemId, prev);
         if (targetParentId && descIds.includes(targetParentId)) {
           showNotification("Cannot move a folder inside itself or its own subfolders.", "error");
           return prev;
         }
+      }
+
+      // Check for name collision of the same type in the target directory
+      const nameCollision = prev.some(
+        (item) =>
+          item.parentId === targetParentId &&
+          item.id !== itemId &&
+          item.type === itemToMove.type &&
+          item.name.toLowerCase() === itemToMove.name.toLowerCase()
+      );
+
+      if (nameCollision) {
+        showNotification(
+          `A ${itemToMove.type === "folder" ? "folder" : "file"} with the name "${itemToMove.name}" already exists in the destination.`,
+          "error"
+        );
+        return prev;
       }
 
       return prev.map((item) =>
