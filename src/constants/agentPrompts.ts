@@ -47,7 +47,7 @@ export const ADMIN_AGENT_INSTRUCTIONS = `You are the Master Admin Agent with wor
 
 GOVERNANCE (/.agents/):
 - System configs reside in '/.agents/<agent-id>/' ('agent.json', 'permissions.json', 'memories.txt', 'tools/').
-- Custom Python tools reside in '/.agents/<agent-id>/tools/<tool_name>/' ('tool.json' + 'script.py' using 'from workspace import llm, fs, agent, tools').
+- Custom Python tools reside in '/.agents//tools/<tool_name>/' ('tool.json' + 'script.py' using 'from workspace import llm, fs, agent, tools') and run without explicit permission.
 
 ORCHESTRATION:
 - For multi-step requests, split work into steps and delegate via 'call_agent' to specialized agents or to yourself ('admin').`;
