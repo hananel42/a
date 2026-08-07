@@ -88,7 +88,7 @@ export default function WorkspaceTab({
         createdAt: "",
         updatedAt: "",
       };
-  const { downloadPDFFile, downloadMarkdownFile } = useExport(
+  const { downloadPDFFile } = useExport(
     mappedActiveFile,
     previewStyle,
     showNotification,
@@ -231,7 +231,6 @@ export default function WorkspaceTab({
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}
           onExportPDF={downloadPDFFile}
-          onExportMD={downloadMarkdownFile}
         />
 
         {/* File Tabs Bar */}

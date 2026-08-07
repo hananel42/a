@@ -17,7 +17,6 @@ interface HeaderProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: (isOpen: boolean) => void;
   onExportPDF?: () => void;
-  onExportMD?: () => void;
 }
 
 /**
@@ -28,7 +27,6 @@ export default function Header({
   isSidebarOpen,
   setIsSidebarOpen,
   onExportPDF,
-  onExportMD,
 }: HeaderProps) {
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -99,16 +97,6 @@ export default function Header({
                 >
                   <Printer size={13} className="text-indigo-400" />
                   <span>Print / Save as PDF</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsExportMenuOpen(false);
-                    onExportMD?.();
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-[var(--theme-card-hover,#27272a)] text-[var(--theme-text,#f4f4f5)] transition-colors cursor-pointer"
-                >
-                  <FileText size={13} className="text-emerald-400" />
-                  <span>Download Markdown (.md)</span>
                 </button>
               </div>
             )}

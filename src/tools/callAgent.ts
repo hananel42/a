@@ -16,7 +16,7 @@ export const callAgentTool: ToolModule = {
         "agent-id": {
           type: "string",
           description:
-            'Target agent ID (e.g. "code-architect", "python-developer", "file-organizer", "researcher", "admin").',
+            'Target agent ID',
         },
         prompt: {
           type: "string",
