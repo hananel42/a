@@ -16,7 +16,7 @@
 import { Agent } from "../types/agent";
 import { getVirtualPath, isPathAllowed } from "../services/mcp";
 import { WORKSPACE_PYTHON_DOCS } from "../constants/workspacePythonDocs";
-import { DEFAULT_SYSTEM_PROMPT_TEMPLATE } from "../constants/agentPrompts";
+import { DEFAULT_SYSTEM_PROMPT_TEMPLATE, DEFAULT_SYSTEM_PROMPT_PREFIX } from "../constants/agentPrompts";
 
 interface BuildPromptOptions {
   agent: Agent;
@@ -118,6 +118,10 @@ export function buildAgentSystemPrompt({
   let tmpl = (config.systemPromptTemplate && config.systemPromptTemplate.trim()) 
     ? config.systemPromptTemplate 
     : DEFAULT_SYSTEM_PROMPT_TEMPLATE;
+
+  if (!tmpl.includes("EXECUTION FLOW DECISION MATRIX")) {
+    tmpl = `${DEFAULT_SYSTEM_PROMPT_PREFIX}\n\n${tmpl}`;
+  }
 
   tmpl = tmpl.replace(/\$\{name\}/g, agent.name || "");
   tmpl = tmpl.replace(/\$\{id\}/g, agent.id || "");
