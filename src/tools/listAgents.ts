@@ -3,6 +3,7 @@
  * @description Tool definition & handler for listing all registered agents.
  */
 
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 import { ToolModule } from "./types";
 
 export const listAgentsTool: ToolModule = {
@@ -19,11 +20,11 @@ export const listAgentsTool: ToolModule = {
 
   async execute(args, context) {
     if (!context.allAgents || !Array.isArray(context.allAgents)) {
-      return "Error: Agents list is not available in the current context.";
+      return AGENT_MESSAGES.LIST_AGENTS_UNAVAILABLE;
     }
 
     if (context.allAgents.length === 0) {
-      return "No agents registered in the system.";
+      return AGENT_MESSAGES.LIST_AGENTS_EMPTY;
     }
 
     const formattedList = context.allAgents

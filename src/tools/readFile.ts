@@ -3,6 +3,7 @@
  * @description Tool definition & handler for reading workspace file contents with line range & truncation support.
  */
 
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 import {
   ToolModule,
   isPathAllowed,
@@ -50,16 +51,16 @@ export const readFileTool: ToolModule = {
     const readPaths = permissions?.allowedReadPaths ||
       permissions?.allowedPaths || ["/"];
     if (!isPathAllowed(path, readPaths, context.currentAgentId, permissions)) {
-      return `Permission Error: Reading path "${path}" is restricted by permissions.`;
+      return AGENT_MESSAGES.READ_FILE_PERMISSION_ERROR.replace("{path}", path);
     }
 
     const item = findItemByPath(path, context.items);
     if (!item) {
-      return `Error: File not found at path "${path}". Please verify the file path using list_dir.`;
+      return AGENT_MESSAGES.READ_FILE_NOT_FOUND.replace("{path}", path);
     }
 
     if (item.type !== "file") {
-      return `Error: Path "${path}" refers to a directory, not a file. Use list_dir to inspect directory contents.`;
+      return AGENT_MESSAGES.READ_FILE_IS_DIR.replace("{path}", path);
     }
 
     const fullContent = item.content || "";
@@ -67,7 +68,7 @@ export const readFileTool: ToolModule = {
     const totalLines = lines.length;
 
     if (!fullContent && totalLines <= 1 && lines[0] === "") {
-      return `--- File Content: "${path}" (Empty file) ---\n(File contains 0 bytes / empty)\n--- End File Content ---`;
+      return AGENT_MESSAGES.READ_FILE_EMPTY.replace("{path}", path);
     }
 
     const rawStart =
@@ -98,10 +99,10 @@ export const readFileTool: ToolModule = {
           : totalLines;
 
       if (start >= totalLines) {
-        return `Error: startLine (${rawStart}) exceeds total file lines (${totalLines}).`;
+        return AGENT_MESSAGES.READ_FILE_STARTLINE_EXCEEDS.replace("{start}", String(rawStart)).replace("{total}", String(totalLines));
       }
       if (start > end) {
-        return `Error: startLine (${rawStart}) cannot be greater than endLine (${rawEnd}).`;
+        return AGENT_MESSAGES.READ_FILE_STARTLINE_GREATER.replace("{start}", String(rawStart)).replace("{end}", String(rawEnd));
       }
       lineMeta = ` [Lines ${start + 1}-${end} of ${totalLines}]`;
     }
@@ -113,7 +114,7 @@ export const readFileTool: ToolModule = {
     const truncatedBody = truncateOutput(bodyText, limit, `File "${path}"`);
 
     if (hasLineRange) {
-      return `--- File Content: "${path}"${lineMeta} ---\n${truncatedBody}\n--- End File Content ---`;
+      return AGENT_MESSAGES.READ_FILE_SUCCESS.replace("{path}", path).replace("{meta}", lineMeta).replace("{body}", truncatedBody);
     }
 
     return truncatedBody;

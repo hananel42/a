@@ -1,6 +1,8 @@
 /**
  * @file initialWorkspace.ts
  * @description Default initial workspace items, directory tree layout, and starter agent configuration files.
+ * This script provides the factory function to seed a fresh virtual workspace with the necessary
+ * dotfiles and agents (admin, code-architect, research-analyst).
  */
 
 import { WorkspaceItem } from "../types/workspace";
@@ -10,6 +12,10 @@ import {
   RESEARCH_ANALYST_INSTRUCTIONS,
 } from "./agentPrompts";
 
+/**
+ * JSON schema for a sample custom Python tool.
+ * Pre-installed in the Admin agent's tool directory to demonstrate extensibility.
+ */
 export const INITIAL_SAMPLE_TOOL_JSON = `{
   "name": "sample_tool",
   "description": "A custom Python tool for Admin agent using the workspace library for LLM processing.",
@@ -25,8 +31,12 @@ export const INITIAL_SAMPLE_TOOL_JSON = `{
   }
 }`;
 
+/**
+ * Python script implementation of the sample custom tool.
+ */
 export const INITIAL_SAMPLE_TOOL_SCRIPT = `# /.agents/admin/tools/sample_tool/script.py
 # Example Custom Python Tool using the zero-dependency workspace API
+
 from workspace import llm, tools
 
 def sample_tool(message: str) -> str:
@@ -37,12 +47,22 @@ def sample_tool(message: str) -> str:
     
     # Use the workspace LLM engine to generate a response
     response = llm.generate(f"Acknowledge and summarize this input concisely: {message}")
-    return f"Tool Output: {response}"
-`;
+    
+    return f"Tool Output: {response}"`;
 
+/**
+ * Factory function to generate the default array of workspace items (files & folders).
+ * Includes the root \`.agents/\` folder and individual subfolders/files for each default agent.
+ * 
+ * @returns {WorkspaceItem[]} An array of standard file/folder items to populate a new workspace.
+ */
 export function getDefaultWorkspaceItems(): WorkspaceItem[] {
   const now = new Date().toISOString();
+  
   return [
+    // ---------------------------------------------------------
+    // Root Agents Directory
+    // ---------------------------------------------------------
     {
       id: "folder-agent",
       name: ".agents",
@@ -52,7 +72,10 @@ export function getDefaultWorkspaceItems(): WorkspaceItem[] {
       updatedAt: now,
       isExpanded: false,
     },
-    // Admin Agent Folder
+
+    // ---------------------------------------------------------
+    // Admin Agent Configuration
+    // ---------------------------------------------------------
     {
       id: "folder-agent-admin",
       name: "admin",
@@ -80,7 +103,7 @@ export function getDefaultWorkspaceItems(): WorkspaceItem[] {
           updatedAt: now,
         },
         null,
-        2,
+        2
       ),
       createdAt: now,
       updatedAt: now,
@@ -114,7 +137,7 @@ export function getDefaultWorkspaceItems(): WorkspaceItem[] {
           allowAgentFolderAccess: true,
         },
         null,
-        2,
+        2
       ),
       createdAt: now,
       updatedAt: now,
@@ -128,6 +151,8 @@ export function getDefaultWorkspaceItems(): WorkspaceItem[] {
       createdAt: now,
       updatedAt: now,
     },
+    
+    // Admin Custom Tools directory and Sample Tool
     {
       id: "folder-admin-tools",
       name: "tools",
@@ -164,7 +189,10 @@ export function getDefaultWorkspaceItems(): WorkspaceItem[] {
       createdAt: now,
       updatedAt: now,
     },
-    // Code Architect Folder
+
+    // ---------------------------------------------------------
+    // Code Architect Agent Configuration
+    // ---------------------------------------------------------
     {
       id: "folder-agent-code-architect",
       name: "code-architect",
@@ -192,7 +220,7 @@ export function getDefaultWorkspaceItems(): WorkspaceItem[] {
           updatedAt: now,
         },
         null,
-        2,
+        2
       ),
       createdAt: now,
       updatedAt: now,
@@ -223,7 +251,7 @@ export function getDefaultWorkspaceItems(): WorkspaceItem[] {
           canCallAllAgents: true,
         },
         null,
-        2,
+        2
       ),
       createdAt: now,
       updatedAt: now,
@@ -237,7 +265,10 @@ export function getDefaultWorkspaceItems(): WorkspaceItem[] {
       createdAt: now,
       updatedAt: now,
     },
-    // Research Analyst Folder
+
+    // ---------------------------------------------------------
+    // Research Analyst Agent Configuration
+    // ---------------------------------------------------------
     {
       id: "folder-agent-research-analyst",
       name: "research-analyst",
@@ -265,7 +296,7 @@ export function getDefaultWorkspaceItems(): WorkspaceItem[] {
           updatedAt: now,
         },
         null,
-        2,
+        2
       ),
       createdAt: now,
       updatedAt: now,
@@ -295,7 +326,7 @@ export function getDefaultWorkspaceItems(): WorkspaceItem[] {
           canCallAllAgents: true,
         },
         null,
-        2,
+        2
       ),
       createdAt: now,
       updatedAt: now,

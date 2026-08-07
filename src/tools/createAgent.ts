@@ -3,6 +3,7 @@
  * @description Tool definition & handler for dynamically registering new specialized AI agents.
  */
 
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 import { ToolModule } from "./types";
 
 export const createAgentTool: ToolModule = {
@@ -89,9 +90,9 @@ export const createAgentTool: ToolModule = {
         Array.isArray(allowedWritePaths) ? allowedWritePaths : ["/"],
         defaultModel,
       );
-      return `Successfully created and registered agent "${name}" (ID: "${agentId}"). System files created at ".agents/${agentId}/agent.json" and ".agents/${agentId}/permissions.json". You can now delegate sub-tasks to it using call_agent.`;
+      return AGENT_MESSAGES.CREATE_AGENT_SUCCESS.replace("{name}", name).replace(/{id}/g, agentId);
     } catch (e: any) {
-      return `Error creating agent "${name}": ${e.message || e}`;
+      return AGENT_MESSAGES.CREATE_AGENT_ERROR.replace("{name}", name).replace("{error}", e.message || String(e));
     }
   },
 };

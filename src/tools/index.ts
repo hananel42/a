@@ -1,3 +1,4 @@
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 /**
  * @file index.ts
  * @description Central registry and dispatcher for all MCP tools.
@@ -96,7 +97,7 @@ export async function executeTool(
     try {
       return await tool.execute(args || {}, context, permissions);
     } catch (err: any) {
-      return `Execution Error in tool "${name}": ${err.message || err}`;
+      return AGENT_MESSAGES.EXECUTION_ERROR.replace("{name}", name).replace("{error}", err.message || String(err));
     }
   }
 
@@ -111,7 +112,7 @@ export async function executeTool(
       try {
         return await executeCustomTool(customTool, args, context, permissions);
       } catch (err: any) {
-        return `Execution Error in custom tool "${name}": ${err.message || err}`;
+        return AGENT_MESSAGES.EXECUTION_ERROR_CUSTOM.replace("{name}", name).replace("{error}", err.message || String(err));
       }
     }
   }
@@ -124,5 +125,5 @@ export async function executeTool(
     : [];
   const allNames = [...builtinNames, ...customNames].join(", ");
 
-  return `Error: Tool "${name}" is not recognized. Available tools: ${allNames}.`;
+  return AGENT_MESSAGES.TOOL_NOT_RECOGNIZED.replace("{name}", name).replace("{available}", allNames);
 }

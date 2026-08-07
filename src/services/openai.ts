@@ -1,3 +1,4 @@
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 /**
  * @file openai.ts
  * @description Highly-customizable OpenAI Chat Completion service supporting real-time streaming,
@@ -460,7 +461,7 @@ export function pruneChatContext(
   const contextIndicator: ChatMessageParam = {
     role: "system",
     content:
-      "[System Note: Older messages in this conversation have been compressed/pruned to optimize context window performance.]",
+      AGENT_MESSAGES.CONTEXT_PRUNED_WARNING,
   };
 
   return [...systemMsgs, contextIndicator, ...prunedChat];

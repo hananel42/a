@@ -1,3 +1,4 @@
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 /**
  * @file getInfo.ts
  * @description Tool definition & handler for getting statistics and metadata for workspace files or folders.
@@ -33,12 +34,12 @@ export const getInfoTool: ToolModule = {
     const readPaths = permissions?.allowedReadPaths ||
       permissions?.allowedPaths || ["/"];
     if (!isPathAllowed(path, readPaths, context.currentAgentId, permissions)) {
-      return `Permission Error: Accessing path "${path}" is restricted by permissions.`;
+      return AGENT_MESSAGES.GET_INFO_PERMISSION_ERROR.replace("{path}", path);
     }
 
     const item = findItemByPath(path, context.items);
     if (!item) {
-      return `Error: Item not found at path "${path}".`;
+      return AGENT_MESSAGES.GET_INFO_NOT_FOUND.replace("{path}", path);
     }
 
     const virtualPath = getVirtualPath(item.id, context.items);

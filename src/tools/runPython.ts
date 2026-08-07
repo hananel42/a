@@ -4,6 +4,7 @@
  * Applies user/agent read path permission checks before delegating to the low-level pythonRunner service.
  */
 
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 import {
   ToolModule,
   isPathAllowed,
@@ -50,18 +51,18 @@ export const runPythonTool: ToolModule = {
       if (
         !isPathAllowed(filePath, readPaths, context.currentAgentId, permissions)
       ) {
-        return `Permission Error: Reading Python script at "${filePath}" is restricted.`;
+        return AGENT_MESSAGES.RUN_PYTHON_PERMISSION_ERROR.replace("{filePath}", filePath);
       }
 
       const item = findItemByPath(filePath, context.items);
       if (!item || item.type !== "file") {
-        return `Error: Python script file not found at "${filePath}".`;
+        return AGENT_MESSAGES.RUN_PYTHON_NOT_FOUND_ERROR.replace("{filePath}", filePath);
       }
       pyCode = item.content || "";
     }
 
     if (!pyCode.trim()) {
-      return "Error: No Python code provided to execute.";
+      return AGENT_MESSAGES.RUN_PYTHON_NO_CODE_ERROR;
     }
 
     // 2. Filter workspace files according to agent read permissions (and /.agents privacy)

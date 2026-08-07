@@ -5,6 +5,7 @@
  * sandbox using DOMParser to convert paragraphs, headers, lists, and tables into rich, detailed Markdown.
  */
 
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 import { ToolModule, truncateOutput } from "./types";
 
 /**
@@ -299,7 +300,7 @@ export const searchWikipediaTool: ToolModule = {
         const aRes = await fetch(parseUrl);
 
         if (!aRes.ok) {
-          return `Error: Failed to fetch Wikipedia article "${titleToFetch}" (Status ${aRes.status}).`;
+          return AGENT_MESSAGES.SEARCH_WIKI_ARTICLE_FAILED.replace("{title}", titleToFetch).replace("{status}", String(aRes.status));
         }
 
         const aData = await aRes.json();
@@ -329,14 +330,14 @@ export const searchWikipediaTool: ToolModule = {
       const searchUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
       const response = await fetch(searchUrl);
       if (!response.ok) {
-        return `Error: Failed to search Wikipedia (Status ${response.status}).`;
+        return AGENT_MESSAGES.SEARCH_WIKI_FAILED_STATUS.replace("{status}", String(response.status));
       }
 
       const data = await response.json();
       const searchResults = data?.query?.search;
 
       if (!searchResults || searchResults.length === 0) {
-        return `No Wikipedia pages found matching query "${query}" on ${lang}.wikipedia.org.`;
+        return AGENT_MESSAGES.SEARCH_WIKI_NO_RESULTS.replace("{query}", query).replace("{lang}", lang);
       }
 
       let summaryText = `--- Wikipedia Search Results for "${query}" (${lang.toUpperCase()}) ---\n\n`;
@@ -366,7 +367,7 @@ export const searchWikipediaTool: ToolModule = {
         `Wikipedia Search for "${query}"`,
       );
     } catch (e: any) {
-      return `Error performing Wikipedia operation: ${e.message || e}`;
+      return AGENT_MESSAGES.SEARCH_WIKI_OP_ERROR.replace("{error}", e.message || String(e));
     }
   },
 };

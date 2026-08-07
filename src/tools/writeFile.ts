@@ -1,3 +1,4 @@
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 /**
  * @file writeFile.ts
  * @description Tool definition & handler for writing or overwriting workspace files with automatic folder creation.
@@ -39,7 +40,7 @@ export const writeFileTool: ToolModule = {
     const writePaths = permissions?.allowedWritePaths ||
       permissions?.allowedPaths || ["/"];
     if (!isPathAllowed(path, writePaths, context.currentAgentId, permissions)) {
-      return `Permission Error: Writing to path "${path}" is restricted by permissions.`;
+      return AGENT_MESSAGES.WRITE_FILE_PERMISSION_ERROR.replace("{path}", path);
     }
 
     const cleanPath = path
@@ -47,7 +48,7 @@ export const writeFileTool: ToolModule = {
       .replace(/^\/+|\/+$/g, "")
       .trim();
     if (!cleanPath) {
-      return "Error: Invalid empty file path.";
+      return AGENT_MESSAGES.WRITE_FILE_EMPTY_PATH;
     }
 
     const parts = cleanPath.split("/");
@@ -96,7 +97,7 @@ export const writeFileTool: ToolModule = {
       await context.updateFileContent(existingFile.id, content);
       existingFile.content = content;
       existingFile.updatedAt = new Date().toISOString();
-      return `Successfully updated file "${cleanPath}" (${lineCount} lines, ${charCount} chars).`;
+      return AGENT_MESSAGES.WRITE_FILE_UPDATED.replace("{path}", cleanPath).replace("{lines}", String(lineCount)).replace("{chars}", String(charCount));
     } else {
       const fileId = await context.createFile(
         fileName,
@@ -112,7 +113,7 @@ export const writeFileTool: ToolModule = {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
-      return `Successfully created new file "${cleanPath}" (${lineCount} lines, ${charCount} chars).`;
+      return AGENT_MESSAGES.WRITE_FILE_CREATED.replace("{path}", cleanPath).replace("{lines}", String(lineCount)).replace("{chars}", String(charCount));
     }
   },
 };

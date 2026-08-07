@@ -19,6 +19,7 @@ import {
   getVirtualPath,
 } from "./mcp";
 import { buildAgentSystemPrompt } from "../utils/promptBuilder";
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 import { ActiveThinkingTimer } from "./agent/thinkingTimer";
 import {
   StreamState,
@@ -311,13 +312,13 @@ export async function runAgentConversation({
 
           if (signal.aborted) {
             step.status = "cancelled";
-            step.output = "Execution cancelled by user.";
+            step.output = AGENT_MESSAGES.USER_CANCELLED;
             updateStepInState(step);
             break;
           }
           if (!approved) {
             step.status = "cancelled";
-            step.output = "User rejected tool execution.";
+            step.output = AGENT_MESSAGES.USER_REJECTED;
             updateStepInState(step);
             if (onStepsChange) onStepsChange([...streamState.steps]);
             if (onMessageUpdate)
@@ -330,7 +331,7 @@ export async function runAgentConversation({
             messagesPayload.push({
               role: "tool",
               tool_call_id: tc.id,
-              content: JSON.stringify({ error: "User rejected execution." }),
+              content: JSON.stringify({ error: AGENT_MESSAGES.USER_REJECTED }),
             });
             continue;
           }
@@ -388,7 +389,7 @@ export async function runAgentConversation({
           step.status = "success";
           step.output = toolResultStr;
         } catch (err: any) {
-          toolResultStr = `Tool Execution Failed: ${err?.message || String(err)}`;
+          toolResultStr = `${AGENT_MESSAGES.TOOL_EXECUTION_FAILED_PREFIX}${err?.message || String(err)}`;
           step.status = "error";
           step.output = toolResultStr;
         }

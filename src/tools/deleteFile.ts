@@ -1,3 +1,4 @@
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 /**
  * @file deleteFile.ts
  * @description Tool definition & handler for deleting files or directories from workspace.
@@ -33,7 +34,7 @@ export const deleteFileTool: ToolModule = {
       .replace(/^\/+|\/+$/g, "")
       .trim();
     if (!clean || clean === "." || clean === "/") {
-      return "Error: Cannot delete workspace root directory.";
+      return AGENT_MESSAGES.DELETE_FILE_ROOT_ERROR;
     }
 
     const writePaths = permissions?.allowedWritePaths ||
@@ -41,12 +42,12 @@ export const deleteFileTool: ToolModule = {
     if (
       !isPathAllowed(clean, writePaths, context.currentAgentId, permissions)
     ) {
-      return `Permission Error: Deleting path "${clean}" is restricted by permissions.`;
+      return AGENT_MESSAGES.DELETE_FILE_PERMISSION_ERROR.replace("{path}", clean);
     }
 
     const item = findItemByPath(clean, context.items);
     if (!item) {
-      return `Error: File or directory not found at path "${clean}".`;
+      return AGENT_MESSAGES.DELETE_FILE_NOT_FOUND.replace("{path}", clean);
     }
 
     if (context.deleteFile) {
@@ -67,6 +68,6 @@ export const deleteFileTool: ToolModule = {
 
     removeSubTree(item.id);
 
-    return `Successfully deleted "${clean}" (${item.type === "folder" ? "directory and all nested contents" : "file"}) from workspace.`;
+    return AGENT_MESSAGES.DELETE_FILE_SUCCESS.replace("{path}", clean).replace("{type}", item.type === "folder" ? "directory and all nested contents" : "file");
   },
 };

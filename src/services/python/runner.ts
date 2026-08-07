@@ -14,6 +14,7 @@ import {
 } from "./types";
 import { runPyodideCode } from "./pyodideEngine";
 import { findItemByPath } from "../../tools/types";
+import { AGENT_MESSAGES } from "../../constants/agentMessages";
 import { WorkspaceItem } from "../../types/workspace";
 
 /**
@@ -112,13 +113,13 @@ export async function runPythonSandbox(
   }
   if (syncedPaths.length > 0) {
     if (output) output += "\n";
-    output += `[Synced modified workspace files: ${syncedPaths.join(", ")}]`;
+    output += `${AGENT_MESSAGES.PYTHON_SYNCED_FILES_PREFIX}${syncedPaths.join(", ")}${AGENT_MESSAGES.PYTHON_SYNCED_FILES_SUFFIX}`;
   }
 
   if (!output.trim()) {
     output = rawResult.success
-      ? "(Script completed with no stdout/stderr output)"
-      : `(Script failed: ${rawResult.error || "Unknown error"})`;
+      ? AGENT_MESSAGES.PYTHON_SCRIPT_COMPLETED_NO_OUTPUT
+      : `${AGENT_MESSAGES.PYTHON_SCRIPT_FAILED_PREFIX}${rawResult.error || AGENT_MESSAGES.PYTHON_UNKNOWN_ERROR}${AGENT_MESSAGES.PYTHON_SCRIPT_FAILED_SUFFIX}`;
   }
 
   return output;

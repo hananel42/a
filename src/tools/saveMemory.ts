@@ -3,6 +3,7 @@
  * @description Tool definition & handler for appending memory entries to an agent's simple memory list file.
  */
 
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 import { ToolModule, findItemByPath } from "./types";
 
 export const saveMemoryTool: ToolModule = {
@@ -26,7 +27,7 @@ export const saveMemoryTool: ToolModule = {
   async execute(args, context) {
     const { text } = args;
     if (!text || typeof text !== "string" || !text.trim()) {
-      return 'Error: Missing or empty "text" parameter to save in memory.';
+      return AGENT_MESSAGES.SAVE_MEMORY_EMPTY;
     }
 
     const agentId = context.currentAgentId || "default";
@@ -47,7 +48,7 @@ export const saveMemoryTool: ToolModule = {
       await context.updateFileContent(existingFile.id, updatedContent);
       existingFile.content = updatedContent;
       existingFile.updatedAt = new Date().toISOString();
-      return "Memory saved successfully.";
+      return AGENT_MESSAGES.SAVE_MEMORY_SUCCESS;
     } else {
       // Create nested directories "agent" and agentId folder if they don't exist
       const parts = targetPath.split("/");
@@ -93,7 +94,7 @@ export const saveMemoryTool: ToolModule = {
         updatedAt: new Date().toISOString(),
       });
 
-      return "Memory saved successfully.";
+      return AGENT_MESSAGES.SAVE_MEMORY_SUCCESS;
     }
   },
 };

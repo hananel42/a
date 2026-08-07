@@ -177,22 +177,26 @@ function ensureDirInFS(FS: any, dirPath: string) {
 function populatePyodideFS(pyodide: any, items: WorkspaceItem[]) {
   const FS = pyodide.FS;
 
-  const writeVirtualFile = (filePath: string, content: string) => {
+  const writeVirtualFile = (filePath: string, content: string, rootDir: string = "/") => {
     const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
     const lastSlash = cleanPath.lastIndexOf("/");
     if (lastSlash > 0) {
-      ensureDirInFS(FS, cleanPath.slice(0, lastSlash));
+      ensureDirInFS(FS, rootDir.slice(1) + cleanPath.slice(0, lastSlash));
     }
     try {
-      FS.writeFile("/" + cleanPath, content, { encoding: "utf8" });
+      FS.writeFile(rootDir + cleanPath, content, { encoding: "utf8" });
     } catch (e) {
       console.warn("Failed to write virtual file to Pyodide FS:", cleanPath, e);
     }
   };
 
+  // 0. Ensure root dirs
+  ensureDirInFS(FS, "sys_workspace");
+  ensureDirInFS(FS, "workspace");
+
   // 1. Inject bundled workspace python libraries
   for (const [relPath, content] of Object.entries(WORKSPACE_PYTHON_FILES)) {
-    writeVirtualFile(relPath, content);
+    writeVirtualFile(relPath, content, "/sys_workspace/");
   }
 
   // 2. Inject user workspace items
@@ -200,7 +204,7 @@ function populatePyodideFS(pyodide: any, items: WorkspaceItem[]) {
     if (item.type === "file") {
       const vPath = getVirtualPath(item.id, items);
       if (vPath) {
-        writeVirtualFile(vPath, item.content || "");
+        writeVirtualFile(vPath, item.content || "", "/workspace/");
       }
     }
   }
@@ -210,7 +214,6 @@ function populatePyodideFS(pyodide: any, items: WorkspaceItem[]) {
 function snapshotPyodideFS(pyodide: any): Map<string, string> {
   const FS = pyodide.FS;
   const snapshot = new Map<string, string>();
-  const ignorePrefixes = [];
 
   function traverse(dir: string) {
     let entries: string[] = [];
@@ -224,18 +227,17 @@ function snapshotPyodideFS(pyodide: any): Map<string, string> {
       if (entry === "." || entry === "..") continue;
       const fullPath = dir === "/" ? "/" + entry : dir + "/" + entry;
 
-      if (ignorePrefixes.some((p) => fullPath.startsWith(p))) continue;
-
       try {
         const stat = FS.stat(fullPath);
         if (FS.isDir(stat.mode)) {
           traverse(fullPath);
         } else if (FS.isFile(stat.mode)) {
-          const relPath = fullPath.startsWith("/") ? fullPath.slice(1) : fullPath;
-          if (WORKSPACE_PYTHON_FILES[relPath]) continue;
-
-          const content = FS.readFile(fullPath, { encoding: "utf8" });
-          snapshot.set(relPath, content);
+          const prefix = "/workspace/";
+          if (fullPath.startsWith(prefix)) {
+            const relPath = fullPath.slice(prefix.length);
+            const content = FS.readFile(fullPath, { encoding: "utf8" });
+            snapshot.set(relPath, content);
+          }
         }
       } catch {
         // ignore unreadable files
@@ -243,7 +245,7 @@ function snapshotPyodideFS(pyodide: any): Map<string, string> {
     }
   }
 
-  traverse("/");
+  traverse("/workspace");
   return snapshot;
 }
 
@@ -332,8 +334,58 @@ import builtins
 
 # Handle working directory and module import path
 file_path_val = ${JSON.stringify(filePathVal)}
+
+# Mount sys_workspace for internal libraries
+
+# Mount sys_workspace for internal libraries
+if "/sys_workspace" not in sys.path:
+    sys.path.insert(0, "/sys_workspace")
+
+# Set working directory to /workspace so relative paths work nicely
+if not os.path.exists("/workspace"):
+    try:
+        os.makedirs("/workspace")
+    except Exception:
+        pass
+
+# Jailing logic to map '/' to '/workspace'
+def _jail_path(p):
+    if isinstance(p, str):
+        if p == "/": return "/workspace"
+        elif p.startswith("/") and not p.startswith(("/lib", "/dev", "/sys", "/tmp", "/proc", "/home", "/sys_workspace", "/workspace")):
+            return "/workspace" + p
+    return p
+
+_orig_open = builtins.open
+def _hooked_open(file, *args, **kwargs):
+    return _orig_open(_jail_path(file), *args, **kwargs)
+builtins.open = _hooked_open
+
+import os
+_orig_listdir = os.listdir
+def _hooked_listdir(path="."):
+    return _orig_listdir(_jail_path(path))
+os.listdir = _hooked_listdir
+
+_orig_abspath = os.path.abspath
+def _hooked_abspath(path):
+    res = _orig_abspath(path)
+    if res.startswith("/workspace"):
+        # map back to root for the user perspective if needed, but usually we just return the jailed path
+        # wait, abspath is used internally, we probably shouldn't mess with it too much, or maybe we should strip /workspace
+        pass
+    return res
+
+_orig_walk = os.walk
+def _hooked_walk(top, topdown=True, onerror=None, followlinks=False):
+    for root, dirs, files in _orig_walk(_jail_path(top), topdown, onerror, followlinks):
+        if root.startswith("/workspace"):
+            root = root[10:] if root != "/workspace" else "/"
+        yield root, dirs, files
+os.walk = _hooked_walk
+
 if file_path_val:
-    abs_path = os.path.abspath(os.path.join("/", file_path_val))
+    abs_path = os.path.abspath(os.path.join("/workspace", file_path_val))
     parent_dir = os.path.dirname(abs_path)
     if parent_dir not in sys.path:
         sys.path.insert(0, parent_dir)
@@ -341,16 +393,17 @@ if file_path_val:
         if os.path.isdir(parent_dir):
             os.chdir(parent_dir)
         else:
-            os.chdir("/")
+            os.chdir("/workspace")
     except Exception:
-        os.chdir("/")
+        os.chdir("/workspace")
 else:
-    if "/" not in sys.path:
-        sys.path.insert(0, "/")
+    if "/workspace" not in sys.path:
+        sys.path.insert(0, "/workspace")
     try:
-        os.chdir("/")
+        os.chdir("/workspace")
     except Exception:
         pass
+
 
 os.environ["AGENT_ID"] = ${JSON.stringify(agentId)}
 os.environ["AGENT_PERMISSIONS"] = ${JSON.stringify(permissionsJson)}

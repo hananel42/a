@@ -1,3 +1,4 @@
+import { AGENT_MESSAGES } from "../constants/agentMessages";
 /**
  * @file listDir.ts
  * @description Tool definition & handler for listing workspace directory contents.
@@ -40,7 +41,7 @@ export const listDirTool: ToolModule = {
     const readPaths = permissions?.allowedReadPaths ||
       permissions?.allowedPaths || ["/"];
     if (!isPathAllowed(path, readPaths, context.currentAgentId, permissions)) {
-      return `Permission Error: Accessing directory "${path}" is restricted by permissions.`;
+      return AGENT_MESSAGES.LIST_DIR_PERMISSION_ERROR.replace("{path}", path);
     }
 
     let parentId: string | null = null;
@@ -49,10 +50,10 @@ export const listDirTool: ToolModule = {
     if (cleanPath !== "/" && cleanPath !== "") {
       const folder = findItemByPath(cleanPath, context.items);
       if (!folder) {
-        return `Error: Directory not found at path "${cleanPath}".`;
+        return AGENT_MESSAGES.LIST_DIR_NOT_FOUND.replace("{path}", cleanPath);
       }
       if (folder.type !== "folder") {
-        return `Error: Path "${cleanPath}" points to a file, not a directory. Use read_file to inspect files.`;
+        return AGENT_MESSAGES.LIST_DIR_IS_FILE.replace("{path}", cleanPath);
       }
       parentId = folder.id;
     }
@@ -89,7 +90,7 @@ export const listDirTool: ToolModule = {
     const truncatedChildren = children.slice(0, maxItems);
 
     if (totalCount === 0) {
-      return `Directory "${cleanPath}" is empty.`;
+      return AGENT_MESSAGES.LIST_DIR_EMPTY.replace("{path}", cleanPath);
     }
 
     const lines = truncatedChildren.map((c) => {
