@@ -68,20 +68,28 @@ export function useConnectionCheck(apiBaseUrl: string, apiKey: string) {
         }
         setModels(fetchedList);
         setStatus("connected");
+        setErrorMessage(null);
       } else {
-        setStatus("connected");
+        let errDetail = `HTTP ${response.status}: ${response.statusText || "Endpoint Error"}`;
+        try {
+          const errBody = await response.json();
+          if (errBody?.error?.message) {
+            errDetail += ` (${errBody.error.message})`;
+          }
+        } catch {}
+        setStatus("offline");
+        setErrorMessage(errDetail);
+        setModels([]);
       }
     } catch (err: any) {
-      try {
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), 2000);
-        await fetch(apiBaseUrl, { mode: "no-cors", signal: controller.signal });
-        clearTimeout(id);
-        setStatus("connected");
-      } catch {
-        setStatus("offline");
-        setErrorMessage(err.message || "Server connection timed out.");
-        setModels([]);
+      setStatus("offline");
+      setModels([]);
+      if (err.name === "AbortError") {
+        setErrorMessage("Connection request timed out (no response within 3.5s).");
+      } else {
+        setErrorMessage(
+          err.message || "Failed to connect to API endpoint. Check server or CORS.",
+        );
       }
     }
   }, [apiBaseUrl, apiKey]);

@@ -226,6 +226,7 @@ export async function streamOpenAIChat({
         { signal },
       );
     } catch (err: any) {
+      console.error("[OpenAI Stream Error]", err);
       // Only retry without tools if model explicitly rejects the 'tools' or 'tool_choice' parameter
       const msgLower = (err.message || "").toLowerCase();
       const isToolUnsupportedError =
@@ -249,7 +250,19 @@ export async function streamOpenAIChat({
         );
         formattedTools = undefined;
       } else {
-        throw err;
+        let detailedError = err.message || String(err);
+        if (err.status) {
+          if (err.status === 401) {
+            detailedError = `API Provider Authorization Failed (401): Invalid or missing API key. (${err.message})`;
+          } else if (err.status === 429) {
+            detailedError = `API Provider Quota / Rate Limit Exceeded (429): Rate limit or credit quota reached. (${err.message})`;
+          } else if (err.status === 403) {
+            detailedError = `API Provider Request Forbidden (403): Access blocked by provider or country restriction. (${err.message})`;
+          } else if (err.status >= 500) {
+            detailedError = `API Provider Internal Server Error (${err.status}): ${err.message}`;
+          }
+        }
+        throw new Error(detailedError);
       }
     }
 

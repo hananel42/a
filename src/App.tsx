@@ -335,6 +335,8 @@ export default function App() {
             requiresConfirmationTools={requiresConfirmationTools}
             setRequiresConfirmationTools={handleSetRequiresConfirmationTools}
             connectionStatus={connection.status}
+            connectionErrorMessage={connection.errorMessage}
+            fetchedModels={connection.models}
             onRetryConnection={connection.checkConnection}
           />
         )}

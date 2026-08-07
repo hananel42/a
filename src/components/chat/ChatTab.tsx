@@ -16,6 +16,8 @@ import { useChatSessions } from "../../hooks/useChatSessions";
 import ChatSidebar from "./ChatSidebar";
 import ChatMessageList, { renderAgentAvatar } from "./ChatMessageList";
 import ChatInput from "./ChatInput";
+import { isModelSupported } from "../../data/models";
+import { AlertTriangle } from "lucide-react";
 
 interface ChatTabProps {
   agents: Agent[];
@@ -206,23 +208,48 @@ export default function ChatTab({
         {/* Active Session Header details */}
         <div className="px-5 py-3.5 border-b border-[var(--theme-border,#141d30)] bg-[var(--theme-card,#101726)] flex items-center justify-between select-none shrink-0">
           {activeSession ? (
-            <div className="flex items-center gap-3">
-              <span className="w-8 h-8 flex items-center justify-center bg-[var(--theme-sidebar,#0b101f)] border border-[var(--theme-border,#141d30)] rounded-xl shrink-0">
-                {renderAgentAvatar(
-                  activeAgent?.avatar,
-                  activeAgent?.name || "Agent",
-                )}
-              </span>
-              <div>
-                <h2 className="text-xs font-bold text-[var(--theme-text,#f1f5f9)] tracking-wide uppercase font-sans">
-                  {activeAgent?.name || "Agent"}
-                </h2>
-                <p className="text-[10px] text-[var(--theme-text-muted,#94a3b8)] mt-0.5 font-mono">
-                  ACTIVE AGENT ID:{" "}
-                  <span className="text-[var(--theme-text,#f1f5f9)] font-semibold">
-                    {activeAgent?.id}
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 flex items-center justify-center bg-[var(--theme-sidebar,#0b101f)] border border-[var(--theme-border,#141d30)] rounded-xl shrink-0">
+                  {renderAgentAvatar(
+                    activeAgent?.avatar,
+                    activeAgent?.name || "Agent",
+                  )}
+                </span>
+                <div>
+                  <h2 className="text-xs font-bold text-[var(--theme-text,#f1f5f9)] tracking-wide uppercase font-sans">
+                    {activeAgent?.name || "Agent"}
+                  </h2>
+                  <p className="text-[10px] text-[var(--theme-text-muted,#94a3b8)] mt-0.5 font-mono">
+                    AGENT ID:{" "}
+                    <span className="text-[var(--theme-text,#f1f5f9)] font-semibold">
+                      {activeAgent?.id}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Model status indicator */}
+              <div className="text-[10px] font-mono shrink-0">
+                {activeAgent?.defaultModel ? (
+                  isModelSupported(activeAgent.defaultModel) ? (
+                    <span className="px-2 py-0.5 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 font-semibold">
+                      MODEL: {activeAgent.defaultModel}
+                    </span>
+                  ) : (
+                    <span
+                      className="px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800/60 font-semibold flex items-center gap-1"
+                      title={`Agent model "${activeAgent.defaultModel}" unavailable. Falling back to global active model.`}
+                    >
+                      <AlertTriangle size={11} className="text-amber-400" />
+                      MODEL: {activeAgent.defaultModel} (Fallback: {model})
+                    </span>
+                  )
+                ) : (
+                  <span className="px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800 font-medium">
+                    MODEL: Global ({model})
                   </span>
-                </p>
+                )}
               </div>
             </div>
           ) : (

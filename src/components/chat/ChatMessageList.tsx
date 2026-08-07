@@ -5,12 +5,13 @@
  */
 
 import React from "react";
-import { ArrowDown, Sparkles, ArrowRight } from "lucide-react";
+import { ArrowDown, Sparkles, ArrowRight, AlertTriangle } from "lucide-react";
 import { Message, Agent } from "../../types/agent";
 import { Task } from "../../types/task";
 import MessageItem from "./MessageItem";
 import { renderAgentAvatar } from "./AgentAvatar";
 import TaskTreeVisualizer from "../tasks/TaskTreeVisualizer";
+import { isModelSupported } from "../../data/models";
 import {
   getThemeBackgroundClasses,
   getThemeTextClasses,
@@ -79,12 +80,24 @@ export default function ChatMessageList({
           `Inspect the project documentation and create a concise summary.`,
         ];
 
+  const hasInvalidModel =
+    currentAgent?.defaultModel && !isModelSupported(currentAgent.defaultModel);
+
   if (!messages || messages.length === 0) {
     return (
       <div
         className={`h-full flex flex-col items-center justify-center p-6 md:p-10 select-none overflow-y-auto transition-colors ${getThemeBackgroundClasses(previewStyle)} ${getThemeTextClasses(previewStyle)}`}
       >
         <div className="max-w-md w-full text-center space-y-6">
+          {hasInvalidModel && (
+            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800/70 text-amber-800 dark:text-amber-200 text-xs font-sans text-left flex items-start gap-2.5 shadow-xs">
+              <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <strong className="font-bold">Model Notice:</strong> The configured model <code className="font-mono bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded text-[11px]">{currentAgent.defaultModel}</code> for agent <strong>{currentAgent.name}</strong> is unavailable. Requests will automatically fall back to the active global model.
+              </div>
+            </div>
+          )}
+
           <div className="mx-auto w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/50 dark:border-indigo-800/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-sm">
             {renderAgentAvatar(
               currentAgent?.avatar,
@@ -144,6 +157,15 @@ export default function ChatMessageList({
         className="h-full overflow-y-auto p-4 md:p-6 scrollbar-thin"
       >
         <div ref={contentRef} className="space-y-6">
+          {hasInvalidModel && (
+            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800/70 text-amber-800 dark:text-amber-200 text-xs font-sans flex items-start gap-2.5 shadow-xs max-w-3xl">
+              <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <strong className="font-bold">Model Notice:</strong> The configured model <code className="font-mono bg-amber-100 dark:bg-amber-900/60 px-1 py-0.5 rounded text-[11px]">{currentAgent.defaultModel}</code> for agent <strong>{currentAgent.name}</strong> is unavailable. Requests will automatically fall back to the active global model.
+              </div>
+            </div>
+          )}
+
           {activeTask && allTasks.length > 0 && (
             <div className="mb-4">
               <TaskTreeVisualizer

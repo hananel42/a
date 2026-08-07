@@ -166,18 +166,16 @@ export default function AgentNormalSettings({
             onChange={(e) => onChangeDefaultModel(e.target.value)}
             className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-sans cursor-pointer"
           >
-            <option value="">Global Default (Inherit platform model)</option>
-            {fetchedModels && fetchedModels.length > 0 ? (
+            <option value="">Global Default (Inherit active model)</option>
+            {defaultModel && !fetchedModels.includes(defaultModel) && (
+              <option value={defaultModel}>{defaultModel} (Custom Override)</option>
+            )}
+            {fetchedModels && fetchedModels.length > 0 &&
               fetchedModels.map((m) => (
                 <option key={m} value={m}>
                   {m}
                 </option>
-              ))
-            ) : (
-              <option value="" disabled>
-                No API models detected
-              </option>
-            )}
+              ))}
           </select>
         </div>
       </div>

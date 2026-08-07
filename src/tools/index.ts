@@ -97,6 +97,7 @@ export async function executeTool(
     try {
       return await tool.execute(args || {}, context, permissions);
     } catch (err: any) {
+      console.error(`[Tool Execution Error: ${name}]`, err);
       return AGENT_MESSAGES.EXECUTION_ERROR.replace("{name}", name).replace("{error}", err.message || String(err));
     }
   }
@@ -112,6 +113,7 @@ export async function executeTool(
       try {
         return await executeCustomTool(customTool, args, context, permissions);
       } catch (err: any) {
+        console.error(`[Custom Tool Execution Error: ${name}]`, err);
         return AGENT_MESSAGES.EXECUTION_ERROR_CUSTOM.replace("{name}", name).replace("{error}", err.message || String(err));
       }
     }

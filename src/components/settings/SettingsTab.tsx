@@ -1,45 +1,36 @@
 /**
  * @file SettingsTab.tsx
  * @description
- * Redesigned administrative parameters panel.
- * Replaces old rigid dark navy backgrounds and cyber brackets with clean, modern, rounded bento cards.
- * Provides intuitive configuration controls for API base endpoints, visual themes, models, and security permissions.
- *
- * Props:
- * - apiKey: String representation of OpenAI connection secret.
- * - setApiKey: Direct parent callback to commit API key changes.
- * - apiBaseUrl: String representation of connection gateway endpoint.
- * - setApiBaseUrl: Parent callback to commit base URL changes.
- * - model: String representation of current LLM target model ID.
- * - setModel: Parent callback to select default model.
- * - connectionStatus: Connection gateway check state.
- * - onRetryConnection: Dispatch request to check connection.
- * - requiresConfirmationTools: Active sandboxed MCP tools requiring manual user confirm.
- * - setRequiresConfirmationTools: Commits updated list of protected tools.
- * - darkMode: Dark visual theme state.
- * - setDarkMode: Parent callback to toggle visual system theme.
- * - previewStyle: Text representation of custom workspace preview.
- * - setPreviewStyle: Direct callback to set visualization layout.
+ * Administrative parameters panel for AI Gateway endpoints, Connection Presets,
+ * Security rules, Visual themes, and System reset operations.
  */
 
 import React, { useState, useEffect } from "react";
 import {
-  Key,
   Cpu,
   ShieldCheck,
   Check,
   Link,
   RefreshCw,
-  Eye,
-  Sparkles,
   Trash2,
   AlertTriangle,
   RotateCcw,
+  Bookmark,
+  Plus,
+  Save,
 } from "lucide-react";
 import { getEnvOpenAIKey } from "../../utils/safeEnv";
 import SecuritySettings from "./SecuritySettings";
 import VisualSettings from "./VisualSettings";
 import { AppTheme } from "../../utils/theme";
+import { ApiPreset } from "../../types/preset";
+import {
+  getSavedPresets,
+  getActivePresetId,
+  setActivePresetId,
+  addOrUpdatePreset,
+  deletePreset,
+} from "../../utils/presetManager";
 
 interface SettingsTabProps {
   apiKey: string;
@@ -49,6 +40,8 @@ interface SettingsTabProps {
   model: string;
   setModel: (m: string) => void;
   connectionStatus: "checking" | "connected" | "offline";
+  connectionErrorMessage?: string | null;
+  fetchedModels?: string[];
   onRetryConnection: () => void;
   requiresConfirmationTools: string[];
   setRequiresConfirmationTools: (tools: string[]) => void;
@@ -64,6 +57,8 @@ export default function SettingsTab({
   model,
   setModel,
   connectionStatus,
+  connectionErrorMessage,
+  fetchedModels = [],
   onRetryConnection,
   requiresConfirmationTools,
   setRequiresConfirmationTools,
@@ -75,59 +70,44 @@ export default function SettingsTab({
   const [localTemperature, setLocalTemperature] = useState(
     () => localStorage.getItem("agent_hub_temperature") || "0.7",
   );
-  const [fetchedModels, setFetchedModels] = useState<string[]>([]);
-  const [isFetchingModels, setIsFetchingModels] = useState(false);
+
+  // Synchronize local input state when parent props change
+  useEffect(() => {
+    setLocalKey(apiKey);
+  }, [apiKey]);
+
+  useEffect(() => {
+    setLocalBaseUrl(apiBaseUrl);
+  }, [apiBaseUrl]);
+
+  // Model input states
   const [showCustomModelInput, setShowCustomModelInput] = useState(false);
   const [customModelText, setCustomModelText] = useState("");
+
+  // Feedback states
   const [savedKey, setSavedKey] = useState(false);
   const [savedBaseUrl, setSavedBaseUrl] = useState(false);
   const [savedTemp, setSavedTemp] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  // Connection Presets State
+  const [presets, setPresets] = useState<ApiPreset[]>(() => getSavedPresets());
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(
+    () => getActivePresetId(),
+  );
+  const [isSavingPreset, setIsSavingPreset] = useState(false);
+  const [newPresetName, setNewPresetName] = useState("");
+  const [presetNotice, setPresetNotice] = useState<string | null>(null);
 
   const handleSystemReset = () => {
     localStorage.clear();
     window.location.reload();
   };
 
-  // Dynamic model fetching effect
-  useEffect(() => {
-    let active = true;
-    const loadModels = async () => {
-      if (!apiBaseUrl) return;
-      setIsFetchingModels(true);
-      try {
-        const headers: Record<string, string> = {};
-        if (apiKey) {
-          headers["Authorization"] = `Bearer ${apiKey}`;
-        }
-        const res = await fetch(`${apiBaseUrl}/models`, { headers }).catch(
-          () => null,
-        );
-        if (res && res.ok) {
-          const data = await res.json();
-          if (data && Array.isArray(data.data) && active) {
-            const list = data.data.map((m: any) => m.id);
-            setFetchedModels(list);
-            if (list.length > 0 && (!model || !list.includes(model))) {
-              setModel(list[0]);
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Failed to discover models:", err);
-      } finally {
-        if (active) setIsFetchingModels(false);
-      }
-    };
-    loadModels();
-    return () => {
-      active = false;
-    };
-  }, [apiBaseUrl, apiKey]);
-
   const handleSaveKey = (e: React.FormEvent) => {
     e.preventDefault();
     setApiKey(localKey);
+    onRetryConnection();
     setSavedKey(true);
     setTimeout(() => setSavedKey(false), 2000);
   };
@@ -135,6 +115,7 @@ export default function SettingsTab({
   const handleSaveBaseUrl = (e: React.FormEvent) => {
     e.preventDefault();
     setApiBaseUrl(localBaseUrl);
+    onRetryConnection();
     setSavedBaseUrl(true);
     setTimeout(() => setSavedBaseUrl(false), 2000);
   };
@@ -148,11 +129,99 @@ export default function SettingsTab({
 
   const handleApplyCustomModel = (e: React.FormEvent) => {
     e.preventDefault();
-    if (customModelText.trim()) {
-      setModel(customModelText.trim());
+    const clean = customModelText.trim();
+    if (clean) {
+      setModel(clean);
       setCustomModelText("");
       setShowCustomModelInput(false);
     }
+  };
+
+  // Preset Handlers
+  const handleSelectPreset = (presetId: string) => {
+    if (presetId === "custom") {
+      setSelectedPresetId(null);
+      setActivePresetId(null);
+      return;
+    }
+    const found = presets.find((p) => p.id === presetId);
+    if (!found) return;
+
+    setLocalKey(found.apiKey);
+    setApiKey(found.apiKey);
+
+    setLocalBaseUrl(found.apiBaseUrl);
+    setApiBaseUrl(found.apiBaseUrl);
+
+    if (found.model) {
+      setModel(found.model);
+    }
+
+    if (found.temperature) {
+      setLocalTemperature(found.temperature);
+      localStorage.setItem("agent_hub_temperature", found.temperature);
+    }
+
+    setSelectedPresetId(found.id);
+    setActivePresetId(found.id);
+
+    onRetryConnection();
+
+    setPresetNotice(`Loaded preset: "${found.name}"`);
+    setTimeout(() => setPresetNotice(null), 3000);
+  };
+
+  const handleSaveNewPreset = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPresetName.trim()) return;
+
+    const created: ApiPreset = {
+      id: `preset-${Date.now()}`,
+      name: newPresetName.trim(),
+      apiBaseUrl: localBaseUrl.trim(),
+      apiKey: localKey.trim(),
+      model: model.trim() || "gpt-4o",
+      temperature: localTemperature,
+    };
+
+    const updated = addOrUpdatePreset(created);
+    setPresets(updated);
+    setSelectedPresetId(created.id);
+    setIsSavingPreset(false);
+    setNewPresetName("");
+
+    setPresetNotice(`Saved connection profile: "${created.name}"`);
+    setTimeout(() => setPresetNotice(null), 3000);
+  };
+
+  const handleUpdateSelectedPreset = () => {
+    if (!selectedPresetId) return;
+    const existing = presets.find((p) => p.id === selectedPresetId);
+    if (!existing) return;
+
+    const updatedPreset: ApiPreset = {
+      ...existing,
+      apiBaseUrl: localBaseUrl.trim(),
+      apiKey: localKey.trim(),
+      model: model.trim(),
+      temperature: localTemperature,
+    };
+
+    const updatedList = addOrUpdatePreset(updatedPreset);
+    setPresets(updatedList);
+    setPresetNotice(`Updated profile: "${existing.name}"`);
+    setTimeout(() => setPresetNotice(null), 3000);
+  };
+
+  const handleDeletePreset = (id: string) => {
+    const existing = presets.find((p) => p.id === id);
+    const updatedList = deletePreset(id);
+    setPresets(updatedList);
+    if (selectedPresetId === id) {
+      setSelectedPresetId(null);
+    }
+    setPresetNotice(`Deleted profile${existing ? `: "${existing.name}"` : ""}`);
+    setTimeout(() => setPresetNotice(null), 3000);
   };
 
   const toggleToolConfirmation = (toolName: string) => {
@@ -179,8 +248,8 @@ export default function SettingsTab({
             Workspace Settings
           </h1>
           <p className="text-[var(--theme-text-muted,#94a3b8)] mt-1 text-xs">
-            Manage your AI gateway endpoints, system security rules, appearance,
-            and workspace state.
+            Manage your AI gateway endpoints, saved connection profiles, system
+            security rules, appearance, and workspace state.
           </p>
         </div>
 
@@ -218,9 +287,130 @@ export default function SettingsTab({
             </button>
           </div>
 
+          {/* Connection Profiles Bar */}
+          <div className="p-4 bg-[var(--theme-card,#101726)] rounded-2xl border border-[var(--theme-border,#141d30)] space-y-3 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Bookmark size={16} className="text-indigo-500 shrink-0" />
+                <div>
+                  <label className="text-xs font-bold text-[var(--theme-text,#f1f5f9)] block">
+                    Saved Connection Profiles
+                  </label>
+                  <span className="text-[11px] text-[var(--theme-text-muted,#94a3b8)]">
+                    Save and switch between your custom connection profiles.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <select
+                  value={selectedPresetId || "custom"}
+                  onChange={(e) => handleSelectPreset(e.target.value)}
+                  className="px-3 py-1.5 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-indigo-500 cursor-pointer font-medium max-w-[200px] truncate"
+                >
+                  <option value="custom">-- Custom / Unsaved Setup --</option>
+                  {presets.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.model || "Default"})
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={() => setIsSavingPreset(!isSavingPreset)}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
+                  title="Save current configuration as a named profile"
+                >
+                  <Plus size={13} />
+                  <span>Save Profile</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Notice Toast */}
+            {presetNotice && (
+              <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2 animate-fade-in">
+                <Check size={13} className="shrink-0" />
+                <span>{presetNotice}</span>
+              </div>
+            )}
+
+            {/* Save Preset Inline Form */}
+            {isSavingPreset && (
+              <form
+                onSubmit={handleSaveNewPreset}
+                className="p-3 bg-slate-900/40 border border-slate-800 rounded-xl space-y-2.5 animate-fade-in"
+              >
+                <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <Save size={13} className="text-indigo-400" />
+                  <span>Save Current Connection as New Preset</span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Profile name (e.g. LM Studio, DeepSeek Cloud)"
+                    value={newPresetName}
+                    onChange={(e) => setNewPresetName(e.target.value)}
+                    className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-indigo-500 font-sans"
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newPresetName.trim()}
+                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg cursor-pointer transition-colors shrink-0"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsSavingPreset(false)}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg cursor-pointer transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Active preset actions */}
+            {selectedPresetId && (
+              <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-800/40 text-slate-400">
+                <span className="font-mono text-[10.5px]">
+                  Active Profile ID:{" "}
+                  <strong className="text-slate-200">{selectedPresetId}</strong>
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleUpdateSelectedPreset}
+                    className="text-indigo-400 hover:underline cursor-pointer flex items-center gap-1"
+                  >
+                    <Save size={11} />
+                    <span>Update Profile</span>
+                  </button>
+                  <span>•</span>
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePreset(selectedPresetId)}
+                    className="text-rose-400 hover:underline cursor-pointer flex items-center gap-1"
+                  >
+                    <Trash2 size={11} />
+                    <span>Delete Profile</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          
+
           <div className="space-y-4 pt-1 bg-[var(--theme-card,#101726)] p-5 rounded-2xl border border-[var(--theme-border,#141d30)] shadow-xs">
-            {/* API Token Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            {/* Secret API Token Row */}
+            <form
+              onSubmit={handleSaveKey}
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+            >
               <div className="sm:w-1/3">
                 <label className="text-xs font-medium text-[var(--theme-text,#f1f5f9)]">
                   Secret API Token
@@ -238,21 +428,19 @@ export default function SettingsTab({
                   className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-[var(--theme-accent,#10b981)] transition-colors"
                 />
                 <button
-                  type="button"
-                  onClick={() => {
-                    setApiKey(localKey);
-                    setSavedKey(true);
-                    setTimeout(() => setSavedKey(false), 2000);
-                  }}
+                  type="submit"
                   className="px-3.5 py-1.5 bg-[var(--theme-accent,#10b981)] hover:opacity-90 text-white text-xs font-medium rounded-lg cursor-pointer transition-colors shrink-0"
                 >
-                  {savedKey ? "Saved" : "Save"}
+                  {savedKey ? "Saved" : "Save Key"}
                 </button>
               </div>
-            </div>
+            </form>
 
             {/* Base URL Endpoint Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/50">
+            <form
+              onSubmit={handleSaveBaseUrl}
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/50"
+            >
               <div className="sm:w-1/3">
                 <label className="text-xs font-medium text-slate-800 dark:text-slate-200">
                   Base URL Endpoint
@@ -267,25 +455,20 @@ export default function SettingsTab({
                   placeholder="e.g. http://localhost:1234/v1"
                   value={localBaseUrl}
                   onChange={(e) => setLocalBaseUrl(e.target.value)}
-                  className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+                  className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors font-mono"
                 />
                 <button
-                  type="button"
-                  onClick={() => {
-                    setApiBaseUrl(localBaseUrl);
-                    setSavedBaseUrl(true);
-                    setTimeout(() => setSavedBaseUrl(false), 2000);
-                  }}
+                  type="submit"
                   className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg cursor-pointer transition-colors shrink-0"
                 >
-                  {savedBaseUrl ? "Saved" : "Apply"}
+                  {savedBaseUrl ? "Saved" : "Apply URL"}
                 </button>
               </div>
-            </div>
+            </form>
 
-            {/* Model Target & Temperature */}
+            {/* Target Model & Temperature */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100 dark:border-slate-800/50">
-              {/* Model */}
+              {/* Model Selection */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
@@ -304,39 +487,52 @@ export default function SettingsTab({
                 </div>
 
                 {showCustomModelInput ? (
-                  <div className="flex gap-1.5 pt-1">
+                  <form
+                    onSubmit={handleApplyCustomModel}
+                    className="flex gap-1.5 pt-1"
+                  >
                     <input
                       type="text"
-                      placeholder="Model ID"
+                      placeholder="Enter Model ID (e.g. gpt-4o, qwen2.5-72b)"
                       value={customModelText}
                       onChange={(e) => setCustomModelText(e.target.value)}
-                      className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                      autoFocus
                     />
                     <button
-                      type="button"
-                      onClick={handleApplyCustomModel}
+                      type="submit"
                       className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg cursor-pointer shrink-0"
                     >
                       Apply
                     </button>
-                  </div>
+                  </form>
                 ) : (
                   <select
-                    value={connectionStatus === "connected" ? model : ""}
+                    value={model}
                     onChange={(e) => setModel(e.target.value)}
-                    disabled={isFetchingModels || fetchedModels.length === 0}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer disabled:opacity-60"
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer font-mono"
                   >
-                    {isFetchingModels ? (
-                      <option>Loading models...</option>
-                    ) : fetchedModels.length === 0 ? (
-                      <option value="">None (Disconnected)</option>
-                    ) : (
+                    {!model && <option value="">Select a Model...</option>}
+
+                    {/* Custom model override if not in fetched list */}
+                    {model &&
+                      fetchedModels &&
+                      !fetchedModels.includes(model) && (
+                        <option value={model}>[Custom Model] {model}</option>
+                      )}
+
+                    {fetchedModels && fetchedModels.length > 0 ? (
                       fetchedModels.map((m) => (
                         <option key={m} value={m}>
                           {m}
                         </option>
                       ))
+                    ) : (
+                      <option value={model || ""} disabled={!model}>
+                        {connectionStatus === "checking"
+                          ? "Loading models from server..."
+                          : "No models returned from endpoint"}
+                      </option>
                     )}
                   </select>
                 )}
@@ -347,7 +543,7 @@ export default function SettingsTab({
                 <label className="text-xs font-medium text-slate-800 dark:text-slate-200 block">
                   Temperature
                 </label>
-                <div className="flex gap-2">
+                <form onSubmit={handleSaveTemp} className="flex gap-2">
                   <input
                     type="number"
                     step="0.1"
@@ -358,20 +554,12 @@ export default function SettingsTab({
                     className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   />
                   <button
-                    type="button"
-                    onClick={() => {
-                      localStorage.setItem(
-                        "agent_hub_temperature",
-                        localTemperature,
-                      );
-                      setSavedTemp(true);
-                      setTimeout(() => setSavedTemp(false), 2000);
-                    }}
+                    type="submit"
                     className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg cursor-pointer transition-colors shrink-0"
                   >
                     {savedTemp ? "Saved" : "Set"}
                   </button>
-                </div>
+                </form>
               </div>
             </div>
 
@@ -384,6 +572,13 @@ export default function SettingsTab({
               </div>
             )}
           </div>
+          {/* Endpoint Connection Error Alert */}
+          {connectionStatus === "offline" && connectionErrorMessage && (
+            <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-200 text-xs font-sans flex items-center gap-2 select-text shadow-xs">
+              <AlertTriangle size={14} className="shrink-0 text-rose-500" />
+              <span className="font-mono text-[11.5px] break-words">{connectionErrorMessage}</span>
+            </div>
+          )}
         </section>
 
         {/* Section 2: Appearance */}
@@ -402,7 +597,7 @@ export default function SettingsTab({
           />
         </section>
 
-        {/* Section 4: System Operations & Factory Reset (Bottom Danger Zone) */}
+        {/* Section 4: System Operations & Factory Reset */}
         <section className="pt-6 border-t border-rose-200/60 dark:border-rose-900/40 space-y-3">
           <div className="flex items-center justify-between">
             <div>

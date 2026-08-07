@@ -9,7 +9,29 @@ import { MessagePart, ToolCallStep } from "../../types/agent";
 import ToolCallStepRenderer from "./ToolCallStepRenderer";
 import ThinkingBlock from "./ThinkingBlock";
 import MarkdownViewer from "../workspace/MarkdownViewer";
-import { FileUp, Shield, Check, XCircle } from "lucide-react";
+import { FileUp, Shield, Check, XCircle, AlertTriangle } from "lucide-react";
+
+export function renderErrorAlertCard(errorText: string) {
+  const cleanMessage = errorText
+    .replace(/^\*\*API Connection Error\*\*:\s*/i, "")
+    .replace(/^\*\*Execution Error\*\*:\s*/i, "")
+    .trim();
+
+  return (
+    <div className="my-2 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-200 text-xs font-sans space-y-1.5 select-text shadow-xs">
+      <div className="flex items-center gap-2 font-bold text-rose-700 dark:text-rose-300">
+        <AlertTriangle size={15} className="shrink-0 text-rose-500" />
+        <span>Execution / API Error</span>
+      </div>
+      <div className="pl-5 font-mono text-[11.5px] leading-relaxed whitespace-pre-wrap break-words text-rose-700 dark:text-rose-300 bg-rose-100/50 dark:bg-rose-900/30 p-2 rounded-lg border border-rose-200/50 dark:border-rose-800/40">
+        {cleanMessage}
+      </div>
+      <div className="pl-5 text-[10px] text-rose-500 dark:text-rose-400 font-sans italic">
+        Error logged to console. Check API key, model availability, or rate limit in Settings.
+      </div>
+    </div>
+  );
+}
 
 interface AgentActivityRendererProps {
   parts?: MessagePart[];
@@ -303,6 +325,24 @@ export default function AgentActivityRenderer({
   const hasContent = Boolean(content && content.trim());
 
   if (hasParts) {
+    const isErrorText = (txt?: string) =>
+      Boolean(
+        txt &&
+          (txt.includes("**API Connection Error**:") ||
+            txt.includes("API Provider Authorization Failed") ||
+            txt.includes("API Provider Quota / Rate Limit") ||
+            txt.includes("Agent execution failed due to tool error") ||
+            txt.includes("Execution Error")),
+      );
+
+    const partsConcatText = normalizedParts!
+      .filter((p) => p.type === "text" && p.content)
+      .map((p) => p.content)
+      .join("\n");
+
+    const extraErrorInContent =
+      content && isErrorText(content) && !partsConcatText.includes(content);
+
     return (
       <div className={`space-y-3 font-sans ${isNested ? "my-1" : ""}`}>
         {normalizedParts!.map((part) => {
@@ -329,6 +369,13 @@ export default function AgentActivityRenderer({
               </div>
             );
           } else if (part.type === "text" && part.content) {
+            if (isErrorText(part.content)) {
+              return (
+                <div key={part.id} className="max-w-3xl">
+                  {renderErrorAlertCard(part.content)}
+                </div>
+              );
+            }
             const isUploadAlert = part.content.startsWith(
               "System Alert: User has uploaded the following file(s)",
             );
@@ -374,11 +421,25 @@ export default function AgentActivityRenderer({
           }
           return null;
         })}
+
+        {extraErrorInContent && (
+          <div className="max-w-3xl">
+            {renderErrorAlertCard(content!)}
+          </div>
+        )}
       </div>
     );
   }
 
   if (hasSteps || hasContent) {
+    const isErrorText =
+      content &&
+      (content.includes("**API Connection Error**:") ||
+        content.includes("API Provider Authorization Failed") ||
+        content.includes("API Provider Quota / Rate Limit") ||
+        content.includes("Agent execution failed due to tool error") ||
+        content.includes("Execution Error"));
+
     return (
       <div className={`space-y-3 font-sans ${isNested ? "my-1" : ""}`}>
         {hasSteps && (
@@ -395,18 +456,24 @@ export default function AgentActivityRenderer({
           </div>
         )}
         {hasContent && (
-          <div
-            className={
-              isNested
-                ? "text-slate-500 dark:text-slate-400 text-[11.5px] leading-relaxed italic [&_p]:my-1 max-w-none select-text"
-                : "max-w-none text-[13px] leading-relaxed select-text text-slate-800 dark:text-slate-100"
-            }
-          >
-            <MarkdownViewer
-              content={content!}
-              previewStyle={previewStyle}
-              isStreaming={isStreaming}
-            />
+          <div className="max-w-3xl">
+            {isErrorText ? (
+              renderErrorAlertCard(content!)
+            ) : (
+              <div
+                className={
+                  isNested
+                    ? "text-slate-500 dark:text-slate-400 text-[11.5px] leading-relaxed italic [&_p]:my-1 max-w-none select-text"
+                    : "max-w-none text-[13px] leading-relaxed select-text text-slate-800 dark:text-slate-100"
+                }
+              >
+                <MarkdownViewer
+                  content={content!}
+                  previewStyle={previewStyle}
+                  isStreaming={isStreaming}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

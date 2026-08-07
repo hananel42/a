@@ -477,6 +477,10 @@ export function useChatSessions({
                   },
                 });
 
+                if (!subResultText || !subResultText.trim()) {
+                  throw new Error(`Sub-agent "${targetAgent.name}" (${targetAgent.id}) produced an empty response.`);
+                }
+
                 const assistantMessage: Message = {
                   id: `msg-sub-assistant-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
                   sender: "assistant",
@@ -496,10 +500,12 @@ export function useChatSessions({
                   msg: subResultText,
                 };
               } catch (err: any) {
+                const errorMsg = `Error running sub-agent "${targetAgent.name}": ${err.message || String(err)}`;
+                console.error(`[useChatSessions] Sub-agent failure (${targetAgent.id}):`, err);
                 return {
                   status: "failed",
                   id: subSessionId,
-                  msg: `Error running sub-agent "${targetAgent.name}": ${err.message || err}`,
+                  msg: errorMsg,
                 };
               }
             };
@@ -543,6 +549,7 @@ export function useChatSessions({
         },
       });
     } catch (err: any) {
+      console.error("[useChatSessions] Main agent conversation error:", err);
       const isAborted = err.name === "AbortError" || controller.signal.aborted;
       const errorSuffix = isAborted
         ? "\n\n*Stream cancelled by user.*"
@@ -559,7 +566,7 @@ export function useChatSessions({
                   p.type === "thinking"
                     ? { ...p, isStreamingReasoning: false }
                     : p,
-                );
+                ) || [];
                 const cleanedSteps = m.steps?.map((step) =>
                   step.status === "running" ||
                   step.status === "queued" ||
@@ -567,14 +574,31 @@ export function useChatSessions({
                     ? { ...step, status: "cancelled" as const }
                     : step,
                 );
+
+                const hasErrorAlready = cleanedParts.some(
+                  (p) => p.type === "text" && p.content?.includes(errorSuffix.trim()),
+                );
+                const updatedParts = hasErrorAlready
+                  ? cleanedParts
+                  : [
+                      ...cleanedParts,
+                      {
+                        id: `part-err-${Date.now()}`,
+                        type: "text" as const,
+                        content: errorSuffix,
+                      },
+                    ];
+
                 return {
                   ...m,
                   content:
                     (m.content || "") +
                     (isAborted && m.content.includes("cancelled by user")
                       ? ""
+                      : m.content.includes(errorSuffix.trim())
+                      ? ""
                       : errorSuffix),
-                  parts: cleanedParts,
+                  parts: updatedParts,
                   steps: cleanedSteps,
                 };
               }

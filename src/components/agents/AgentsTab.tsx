@@ -24,10 +24,12 @@ import {
   X,
   ShieldAlert,
   MessageSquare,
+  AlertTriangle,
 } from "lucide-react";
 import { Agent } from "../../types/agent";
 import { WorkspaceItem } from "../../types/workspace";
 import AgentForm from "./AgentForm";
+import { isModelSupported } from "../../data/models";
 import { renderAgentAvatar } from "../chat/ChatMessageList";
 
 interface AgentsTabProps {
@@ -356,9 +358,25 @@ export default function AgentsTab({
 
                         {/* Custom Model & Prompt Overrides Indicator */}
                         <div className="mt-3 flex flex-wrap gap-1.5 items-center">
-                          <span className="text-[9.5px] font-mono px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/40 font-semibold">
-                            Model: {ag.defaultModel || "Inherit Global"}
-                          </span>
+                          {ag.defaultModel ? (
+                            isModelSupported(ag.defaultModel, fetchedModels) ? (
+                              <span className="text-[9.5px] font-mono px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/40 font-semibold">
+                                Model: {ag.defaultModel}
+                              </span>
+                            ) : (
+                              <span
+                                className="text-[9.5px] font-mono px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800/60 font-semibold flex items-center gap-1"
+                                title={`Model "${ag.defaultModel}" is not recognized or unavailable. Agent will automatically fall back to the active global model.`}
+                              >
+                                <AlertTriangle size={11} className="text-amber-500 shrink-0" />
+                                Model: {ag.defaultModel} (Missing - Using Global)
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-[9.5px] font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 font-medium">
+                              Model: Inherit Global
+                            </span>
+                          )}
                           {ag.promptConfig?.systemPromptTemplate && (
                             <span className="text-[9.5px] font-mono px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/40 font-semibold">
                               Custom Prompt Template

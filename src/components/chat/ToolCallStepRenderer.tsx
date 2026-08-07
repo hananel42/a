@@ -299,6 +299,9 @@ export default function ToolCallStepRenderer({
   const [isNestedExpanded, setIsNestedExpanded] = useState(true);
 
   const isPending = step.status === "pending_approval";
+  const isError = step.status === "error";
+
+  const showDetails = isDetailsExpanded;
 
   const primaryDetail = getPrimaryHeaderDetail(step.args);
   const borderColor = isPending
@@ -373,7 +376,7 @@ export default function ToolCallStepRenderer({
       </div>
 
       {/* 2. Collapsible Details: Input Parameters & Output Model Response */}
-      {isDetailsExpanded && (
+      {showDetails && (
         <div className="mt-2.5 pt-2.5 border-t border-slate-800/80 space-y-3">
           {/* Input Section */}
           <div>

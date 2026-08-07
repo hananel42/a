@@ -167,6 +167,7 @@ export default function MessageItem({
               <AgentActivityRenderer
                 parts={msg.parts}
                 steps={msg.steps}
+                content={msg.content}
                 onApproveTool={onApproveTool}
                 onRejectTool={onRejectTool}
                 previewStyle={previewStyle}

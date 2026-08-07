@@ -21,6 +21,7 @@ import {
 import { buildAgentSystemPrompt } from "../utils/promptBuilder";
 import { AGENT_MESSAGES } from "../constants/agentMessages";
 import { ActiveThinkingTimer } from "./agent/thinkingTimer";
+import { isModelSupported } from "../data/models";
 import {
   StreamState,
   handleReasoningChunk,
@@ -96,10 +97,19 @@ export async function runAgentConversation({
     memoryFiles,
   });
 
-  const effectiveModel =
-    agent.defaultModel && agent.defaultModel.trim()
-      ? agent.defaultModel.trim()
-      : model;
+  const rawAgentModel = agent.defaultModel?.trim();
+  let effectiveModel = model;
+  let modelFallbackNotice: string | null = null;
+
+  if (rawAgentModel) {
+    if (isModelSupported(rawAgentModel)) {
+      effectiveModel = rawAgentModel;
+    } else {
+      effectiveModel = model;
+      modelFallbackNotice = `Agent default model "${rawAgentModel}" was not found or is unavailable. Falling back to active global model "${model}".`;
+      console.warn(`[agentEngine] ${modelFallbackNotice}`);
+    }
+  }
 
   const messagesPayload: ChatMessageParam[] = [
     { role: "system", content: systemPrompt },
@@ -429,12 +439,33 @@ export async function runAgentConversation({
         [...streamState.steps],
       );
 
-    const cleanedText = cleanTextFromPseudoTools(
+    let cleanedText = cleanTextFromPseudoTools(
       streamState.fullAssistantResponseText,
     );
+    if (!cleanedText || !cleanedText.trim()) {
+      const errorSteps = streamState.steps.filter((s) => s.status === "error");
+      if (errorSteps.length > 0) {
+        const errorDetails = errorSteps
+          .map((s) => `[${s.toolName}]: ${s.output}`)
+          .join("\n");
+        const toolErr = `Agent execution failed due to tool error(s):\n${errorDetails}`;
+        console.error(`[agentEngine] ${toolErr}`);
+        throw new Error(toolErr);
+      }
+      const cancelledSteps = streamState.steps.filter((s) => s.status === "cancelled");
+      if (cancelledSteps.length > 0) {
+        const cancelErr = `Agent execution was cancelled by user rejection.`;
+        console.error(`[agentEngine] ${cancelErr}`);
+        throw new Error(cancelErr);
+      }
+      const emptyErr = `Agent "${agent.name}" (${agent.id}) returned an empty response. This may be caused by API provider rate limits, safety blocks, or model incompatibility with model "${effectiveModel}".`;
+      console.error(`[agentEngine] ${emptyErr}`);
+      throw new Error(emptyErr);
+    }
     return cleanedText;
   } catch (err: any) {
     thinkingTimer.stop();
+    console.error(`[agentEngine] Error during execution of agent "${agent.name}" (${agent.id}):`, err);
     streamState.parts = streamState.parts.map((p) =>
       p.type === "thinking" ? { ...p, isStreamingReasoning: false } : p,
     );
@@ -451,7 +482,8 @@ export async function runAgentConversation({
       );
 
     if (signal.aborted || err.name === "AbortError") {
-      return cleanTextFromPseudoTools(streamState.fullAssistantResponseText);
+      const text = cleanTextFromPseudoTools(streamState.fullAssistantResponseText);
+      return text || "*Stream cancelled by user.*";
     }
     throw err;
   }

@@ -125,8 +125,20 @@ export const THINKING_MODEL_IDS = AVAILABLE_MODELS.filter(
 ).map((m) => m.id);
 
 /**
- * Helper to retrieve metadata for a given model ID.
+ * Helper to check if a model ID is valid and available (either in curated models or custom model list).
  */
+export function isModelSupported(modelId?: string, customModels?: string[]): boolean {
+  if (!modelId || !modelId.trim()) return false;
+  const cleaned = modelId.trim().toLowerCase();
+  if (AVAILABLE_MODELS.some((m) => m.id.toLowerCase() === cleaned)) {
+    return true;
+  }
+  if (customModels && customModels.some((m) => m.toLowerCase() === cleaned)) {
+    return true;
+  }
+  return false;
+}
+
 export function getModelDetails(modelId: string): ModelOption | undefined {
   return AVAILABLE_MODELS.find((m) => m.id === modelId);
 }
