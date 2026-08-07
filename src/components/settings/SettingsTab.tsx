@@ -47,7 +47,7 @@ interface SettingsTabProps {
   connectionStatus: "checking" | "connected" | "offline";
   connectionErrorMessage?: string | null;
   fetchedModels?: string[];
-  onRetryConnection: () => void;
+  onRetryConnection: (overrideBaseUrl?: string, overrideApiKey?: string) => void;
   requiresConfirmationTools: string[];
   setRequiresConfirmationTools: (tools: string[]) => void;
   appTheme: AppTheme;
@@ -167,8 +167,8 @@ export default function SettingsTab({
     setSelectedPresetId(found.id);
     setActivePresetId(found.id);
 
-    // Auto trigger connection check
-    onRetryConnection();
+    // Auto trigger connection check instantly with profile endpoint & key
+    onRetryConnection(found.apiBaseUrl, found.apiKey);
 
     setPresetNotice(`Loaded profile: "${found.name}"`);
     setTimeout(() => setPresetNotice(null), 3000);
@@ -243,31 +243,27 @@ export default function SettingsTab({
   return (
     <div
       id="settings-tab"
-      className="flex-1 overflow-y-auto h-full bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] py-8 px-4 sm:px-8 scrollbar-thin transition-colors"
+      className="flex-1 overflow-y-auto h-full bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] py-6 px-4 sm:px-8 scrollbar-thin transition-colors"
     >
-      <div className="max-w-3xl mx-auto space-y-8">
+      <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
-        <div className="border-b border-[var(--theme-border,#141d30)] pb-5">
-          <h1 className="text-xl font-bold tracking-tight text-[var(--theme-text,#f1f5f9)]">
-            Workspace Settings
+        <div className="border-b border-[var(--theme-border,#141d30)] pb-3">
+          <h1 className="text-lg font-bold tracking-tight text-[var(--theme-text,#f1f5f9)]">
+            Settings
           </h1>
-          <p className="text-[var(--theme-text-muted,#94a3b8)] mt-1 text-xs">
-            Manage your AI gateway endpoints, saved connection profiles, system
-            security rules, appearance, and workspace state.
-          </p>
         </div>
 
         {/* Section 1: API Gateway & Engine */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-[var(--theme-border,#141d30)]">
-            <h2 className="text-sm font-semibold text-[var(--theme-text,#f1f5f9)] flex items-center gap-2">
-              <Link size={15} className="text-[var(--theme-accent,#10b981)]" />
-              <span>Gateway & AI Engine</span>
+        <section className="space-y-3">
+          <div className="flex items-center justify-between pb-1.5 border-b border-[var(--theme-border,#141d30)]">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--theme-text-muted,#94a3b8)] flex items-center gap-2">
+              <Link size={14} className="text-[var(--theme-accent,#10b981)]" />
+              <span>Gateway & Connection</span>
             </h2>
             <button
               type="button"
-              onClick={onRetryConnection}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+              onClick={() => onRetryConnection()}
+              className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all cursor-pointer ${
                 connectionStatus === "connected"
                   ? "bg-[var(--theme-accent-subtle,rgba(16,185,129,0.15))] text-[var(--theme-accent,#10b981)] border border-[var(--theme-accent,#10b981)]"
                   : connectionStatus === "checking"
@@ -292,30 +288,25 @@ export default function SettingsTab({
           </div>
 
           {/* Connection Profiles Bar */}
-          <div className="p-4 bg-[var(--theme-card,#101726)] rounded-2xl border border-[var(--theme-border,#141d30)] space-y-3 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-3 bg-[var(--theme-card,#101726)] rounded-xl border border-[var(--theme-border,#141d30)] space-y-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Bookmark size={16} className="text-indigo-500 shrink-0" />
-                <div>
-                  <label className="text-xs font-bold text-[var(--theme-text,#f1f5f9)] block">
-                    Saved Connection Profiles
-                  </label>
-                  <span className="text-[11px] text-[var(--theme-text-muted,#94a3b8)]">
-                    Save and switch between your custom connection profiles.
-                  </span>
-                </div>
+                <Bookmark size={14} className="text-indigo-500 shrink-0" />
+                <span className="text-xs font-semibold text-[var(--theme-text,#f1f5f9)]">
+                  Profile
+                </span>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
                 <select
                   value={selectedPresetId || "custom"}
                   onChange={(e) => handleSelectPreset(e.target.value)}
-                  className="px-3 py-1.5 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-indigo-500 cursor-pointer font-medium max-w-[220px] truncate"
+                  className="px-2.5 py-1 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-indigo-500 cursor-pointer font-medium max-w-[200px] truncate"
                 >
-                  <option value="custom">-- Custom / Unsaved Setup --</option>
+                  <option value="custom">Custom Setup</option>
                   {presets.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({p.model || "Default"})
+                      {p.name}
                     </option>
                   ))}
                 </select>
@@ -323,19 +314,18 @@ export default function SettingsTab({
                 <button
                   type="button"
                   onClick={() => setIsSavingPreset(!isSavingPreset)}
-                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
-                  title="Save current configuration as a named profile"
+                  className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer flex items-center gap-1 shrink-0"
                 >
                   <Plus size={13} />
-                  <span>New Profile</span>
+                  <span>Save</span>
                 </button>
               </div>
             </div>
 
             {/* Notice Toast */}
             {presetNotice && (
-              <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 px-3 py-1.5 rounded-lg flex items-center gap-2 animate-fade-in">
-                <Check size={13} className="shrink-0" />
+              <div className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 px-2.5 py-1 rounded-lg flex items-center gap-1.5 animate-fade-in">
+                <Check size={12} className="shrink-0" />
                 <span>{presetNotice}</span>
               </div>
             )}
@@ -344,32 +334,28 @@ export default function SettingsTab({
             {isSavingPreset && (
               <form
                 onSubmit={handleSaveNewPreset}
-                className="p-3 bg-slate-900/40 border border-slate-800 rounded-xl space-y-2.5 animate-fade-in"
+                className="p-2.5 bg-slate-900/40 border border-slate-800 rounded-lg space-y-2 animate-fade-in"
               >
-                <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                  <Save size={13} className="text-indigo-400" />
-                  <span>Save Current Connection as New Profile</span>
-                </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Profile name (e.g. Local Server, Cloud Gateway)"
+                    placeholder="Profile name"
                     value={newPresetName}
                     onChange={(e) => setNewPresetName(e.target.value)}
-                    className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-indigo-500 font-sans"
+                    className="flex-1 px-2.5 py-1 text-xs rounded-lg border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-indigo-500 font-sans"
                     autoFocus
                   />
                   <button
                     type="submit"
                     disabled={!newPresetName.trim()}
-                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg cursor-pointer transition-colors shrink-0"
+                    className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-medium rounded-lg cursor-pointer transition-colors shrink-0"
                   >
-                    Save Profile
+                    Save
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsSavingPreset(false)}
-                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg cursor-pointer transition-colors"
+                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg cursor-pointer transition-colors"
                   >
                     Cancel
                   </button>
@@ -381,7 +367,7 @@ export default function SettingsTab({
             {selectedPresetId && (
               <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-800/40 text-slate-400">
                 <span className="font-mono text-[10.5px]">
-                  Active Profile:{" "}
+                  Active:{" "}
                   <strong className="text-indigo-400">
                     {presets.find((p) => p.id === selectedPresetId)?.name ||
                       selectedPresetId}
@@ -394,7 +380,7 @@ export default function SettingsTab({
                     className="text-indigo-400 hover:underline cursor-pointer flex items-center gap-1"
                   >
                     <Save size={11} />
-                    <span>Update Profile</span>
+                    <span>Update</span>
                   </button>
                   <span>•</span>
                   <button
@@ -403,7 +389,7 @@ export default function SettingsTab({
                     className="text-rose-400 hover:underline cursor-pointer flex items-center gap-1"
                   >
                     <Trash2 size={11} />
-                    <span>Delete Profile</span>
+                    <span>Delete</span>
                   </button>
                 </div>
               </div>
@@ -412,76 +398,59 @@ export default function SettingsTab({
 
           <form
             onSubmit={handleSaveConnectionSettings}
-            className="space-y-4 pt-1 bg-[var(--theme-card,#101726)] p-5 rounded-2xl border border-[var(--theme-border,#141d30)] shadow-xs"
+            className="space-y-3 p-3.5 bg-[var(--theme-card,#101726)] rounded-xl border border-[var(--theme-border,#141d30)]"
           >
-            {/* Secret API Token Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="sm:w-1/3">
-                <label className="text-xs font-medium text-[var(--theme-text,#f1f5f9)]">
-                  Secret API Token
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-[var(--theme-text,#f1f5f9)] block">
+                  API Token
                 </label>
-                <p className="text-[11px] text-[var(--theme-text-muted,#94a3b8)]">
-                  Bearer key for remote gateway authentication.
-                </p>
-              </div>
-              <div className="sm:w-2/3 max-w-md">
                 <input
                   type="password"
-                  placeholder="Optional for local servers"
+                  placeholder="Secret key (optional for local)"
                   value={localKey}
                   onChange={(e) => setLocalKey(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-[var(--theme-accent,#10b981)] transition-colors"
+                  className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-[var(--theme-accent,#10b981)]"
                 />
               </div>
-            </div>
 
-            {/* Base URL Endpoint Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/50">
-              <div className="sm:w-1/3">
-                <label className="text-xs font-medium text-slate-800 dark:text-slate-200">
-                  Base URL Endpoint
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-[var(--theme-text,#f1f5f9)] block">
+                  Base URL
                 </label>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                  OpenAI compatible API base endpoint.
-                </p>
-              </div>
-              <div className="sm:w-2/3 max-w-md">
                 <input
                   type="text"
-                  placeholder="e.g. http://localhost:1234/v1"
+                  placeholder="http://localhost:1234/v1"
                   value={localBaseUrl}
                   onChange={(e) => setLocalBaseUrl(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors font-mono"
+                  className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-indigo-500 font-mono"
                 />
               </div>
             </div>
 
-            {/* Target Model & Temperature */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100 dark:border-slate-800/50">
-              {/* Model Selection */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-800 dark:text-slate-200 flex items-center justify-between">
-                  <span className="flex items-center gap-1.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[var(--theme-border,#141d30)]">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-[var(--theme-text,#f1f5f9)] flex items-center justify-between">
+                  <span className="flex items-center gap-1">
                     <Cpu size={13} className="text-indigo-500" />
                     <span>Target Model</span>
                   </span>
                   {hasFetchedModels && (
                     <span className="text-[10px] text-emerald-500 font-normal">
-                      ✓ Endpoint Provided
+                      ✓ {fetchedModels.length} models
                     </span>
                   )}
                 </label>
 
                 {hasFetchedModels ? (
-                  /* Endpoint actively provided models: show pure clean dropdown without custom override clutter */
                   <select
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer font-mono"
+                    className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-indigo-500 cursor-pointer font-mono"
                   >
-                    {!model && <option value="">Select Endpoint Model...</option>}
+                    {!model && <option value="">Select Model...</option>}
                     {model && !fetchedModels.includes(model) && (
-                      <option value={model}>{model} (Saved Profile)</option>
+                      <option value={model}>{model} (Saved)</option>
                     )}
                     {fetchedModels.map((m) => (
                       <option key={m} value={m}>
@@ -490,21 +459,19 @@ export default function SettingsTab({
                     ))}
                   </select>
                 ) : (
-                  /* Endpoint doesn't return a list: allow managing custom model names */
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <div className="flex gap-1.5">
                       <select
                         value={model}
                         onChange={(e) => setModel(e.target.value)}
-                        className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                        className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-indigo-500 font-mono"
                       >
                         {!model && (
-                          <option value="">Choose or add custom model...</option>
+                          <option value="">Select custom model...</option>
                         )}
-                        {model &&
-                          !customModelsList.includes(model) && (
-                            <option value={model}>{model}</option>
-                          )}
+                        {model && !customModelsList.includes(model) && (
+                          <option value={model}>{model}</option>
+                        )}
                         {customModelsList.map((m) => (
                           <option key={m} value={m}>
                             {m}
@@ -517,7 +484,7 @@ export default function SettingsTab({
                           type="button"
                           onClick={() => handleRemoveCustomModel(model)}
                           className="px-2 py-1.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors cursor-pointer"
-                          title="Remove this custom model name"
+                          title="Remove custom model"
                         >
                           <Trash2 size={13} />
                         </button>
@@ -527,10 +494,10 @@ export default function SettingsTab({
                     <div className="flex gap-1.5">
                       <input
                         type="text"
-                        placeholder="Add custom model (e.g. gpt-4o)"
+                        placeholder="Add model (e.g. gpt-4o)"
                         value={newCustomModelInput}
                         onChange={(e) => setNewCustomModelInput(e.target.value)}
-                        className="flex-1 px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono text-[11px]"
+                        className="flex-1 px-2.5 py-1 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-indigo-500 font-mono text-[11px]"
                       />
                       <button
                         type="button"
@@ -545,9 +512,8 @@ export default function SettingsTab({
                 )}
               </div>
 
-              {/* Temperature */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-800 dark:text-slate-200 block">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-[var(--theme-text,#f1f5f9)] block">
                   Temperature
                 </label>
                 <input
@@ -557,41 +523,35 @@ export default function SettingsTab({
                   max="2"
                   value={localTemperature}
                   onChange={(e) => setLocalTemperature(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-[var(--theme-border,#141d30)] bg-[var(--theme-bg,#070c18)] text-[var(--theme-text,#f1f5f9)] focus:outline-none focus:border-indigo-500"
                 />
               </div>
             </div>
 
             {hasEnvKey && (
-              <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 px-3 py-2 rounded-lg border border-emerald-200/40 dark:border-emerald-800/30 text-xs">
-                <ShieldCheck size={14} className="shrink-0" />
-                <span>
-                  Environment API credentials active and configured in server.
-                </span>
+              <div className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 rounded-lg border border-emerald-200/40 dark:border-emerald-800/30 text-[11px]">
+                <ShieldCheck size={13} className="shrink-0" />
+                <span>Environment API key active</span>
               </div>
             )}
 
             {/* Unified Save Action Button */}
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="pt-2 border-t border-[var(--theme-border,#141d30)] flex items-center justify-between gap-2">
               <div className="text-xs">
-                {savedConnectionSettings ? (
-                  <span className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400 animate-fade-in">
-                    <Check size={14} />
-                    <span>Connection settings saved & endpoint updated!</span>
-                  </span>
-                ) : (
-                  <span className="text-[11px] text-[var(--theme-text-muted,#94a3b8)]">
-                    Applies API Key, Base URL, and Temperature parameters simultaneously.
+                {savedConnectionSettings && (
+                  <span className="flex items-center gap-1 font-medium text-emerald-500 animate-fade-in">
+                    <Check size={13} />
+                    <span>Saved!</span>
                   </span>
                 )}
               </div>
 
               <button
                 type="submit"
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors shadow-xs flex items-center justify-center gap-2 shrink-0"
+                className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg cursor-pointer transition-colors shadow-xs flex items-center gap-1.5 shrink-0"
               >
-                <Save size={14} />
-                <span>Save Connection Settings</span>
+                <Save size={13} />
+                <span>Save Settings</span>
               </button>
             </div>
           </form>
@@ -606,7 +566,7 @@ export default function SettingsTab({
         </section>
 
         {/* Section 2: Appearance */}
-        <section className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+        <section className="space-y-2 pt-3 border-t border-[var(--theme-border,#141d30)]">
           <VisualSettings
             appTheme={appTheme}
             setAppTheme={setAppTheme}
@@ -614,7 +574,7 @@ export default function SettingsTab({
         </section>
 
         {/* Section 3: Security & Execution Permissions */}
-        <section className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+        <section className="space-y-2 pt-3 border-t border-[var(--theme-border,#141d30)]">
           <SecuritySettings
             requiresConfirmationTools={requiresConfirmationTools}
             onToggleTool={toggleToolConfirmation}
@@ -622,17 +582,13 @@ export default function SettingsTab({
         </section>
 
         {/* Section 4: System Operations & Factory Reset */}
-        <section className="pt-6 border-t border-rose-200/60 dark:border-rose-900/40 space-y-3">
+        <section className="pt-4 border-t border-rose-900/30 space-y-2">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
-                <Trash2 size={14} />
-                <span>Reset & Clear System</span>
+              <h3 className="text-xs font-semibold text-rose-500 flex items-center gap-1.5">
+                <Trash2 size={13} />
+                <span>Reset Application</span>
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                Permanently clear all local workspace files, custom agents, chat
-                history, and restore settings to default initial state.
-              </p>
             </div>
           </div>
 
@@ -640,34 +596,32 @@ export default function SettingsTab({
             <button
               type="button"
               onClick={() => setShowResetConfirm(true)}
-              className="py-2 px-4 bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium rounded-lg shadow-xs transition-colors cursor-pointer flex items-center gap-2"
+              className="py-1.5 px-3 bg-rose-600/80 hover:bg-rose-600 text-white text-xs font-medium rounded-lg shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              <RotateCcw size={13} />
-              <span>Reset & Clear Everything</span>
+              <RotateCcw size={12} />
+              <span>Reset & Clear All Data</span>
             </button>
           ) : (
-            <div className="p-3.5 bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 rounded-xl space-y-2.5 max-w-md">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400">
-                <AlertTriangle size={15} />
-                <span>Confirm Complete System Reset?</span>
+            <div className="p-3 bg-rose-950/20 border border-rose-900/50 rounded-xl space-y-2 max-w-md">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-rose-400">
+                <AlertTriangle size={14} />
+                <span>Confirm Reset?</span>
               </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                This action will delete all workspace files, agent
-                configurations, memory files, and saved state. This operation
-                cannot be undone.
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Deletes all workspace files, agent configurations, and saved state.
               </p>
               <div className="flex gap-2 pt-1">
                 <button
                   type="button"
                   onClick={handleSystemReset}
-                  className="py-1.5 px-3 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg cursor-pointer transition-colors"
+                  className="py-1 px-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium rounded-lg cursor-pointer transition-colors"
                 >
-                  Yes, Wipe Everything
+                  Confirm Reset
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowResetConfirm(false)}
-                  className="py-1.5 px-3 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-lg cursor-pointer transition-colors"
+                  className="py-1 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>

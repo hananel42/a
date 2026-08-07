@@ -18,81 +18,89 @@ export function useConnectionCheck(apiBaseUrl: string, apiKey: string) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [models, setModels] = useState<string[]>([]);
 
-  const checkConnection = useCallback(async () => {
-    if (!apiBaseUrl) {
-      setStatus("offline");
-      setErrorMessage("API Base URL is blank.");
-      setModels([]);
-      return;
-    }
+  const checkConnection = useCallback(
+    async (overrideBaseUrl?: string, overrideApiKey?: string) => {
+      const baseUrlToUse =
+        overrideBaseUrl !== undefined ? overrideBaseUrl : apiBaseUrl;
+      const apiKeyToUse =
+        overrideApiKey !== undefined ? overrideApiKey : apiKey;
 
-    setStatus("checking");
-    setErrorMessage(null);
-
-    try {
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-
-      if (apiKey && apiKey.trim() !== "") {
-        headers["Authorization"] = `Bearer ${apiKey}`;
-      }
-
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), 3500);
-
-      const cleanUrl = apiBaseUrl.endsWith("/")
-        ? apiBaseUrl.slice(0, -1)
-        : apiBaseUrl;
-      const targetUrl = `${cleanUrl}/models`;
-
-      const response = await fetch(targetUrl, {
-        method: "GET",
-        headers,
-        signal: controller.signal,
-      });
-
-      clearTimeout(id);
-
-      if (response.ok) {
-        const data = await response.json();
-        let fetchedList: string[] = [];
-        if (data && Array.isArray(data.data)) {
-          fetchedList = data.data
-            .map((m: any) => m.id)
-            .filter((id: any) => typeof id === "string");
-        } else if (data && Array.isArray(data)) {
-          fetchedList = data
-            .map((m: any) => m.id || m)
-            .filter((id: any) => typeof id === "string");
-        }
-        setModels(fetchedList);
-        setStatus("connected");
-        setErrorMessage(null);
-      } else {
-        let errDetail = `HTTP ${response.status}: ${response.statusText || "Endpoint Error"}`;
-        try {
-          const errBody = await response.json();
-          if (errBody?.error?.message) {
-            errDetail += ` (${errBody.error.message})`;
-          }
-        } catch {}
+      if (!baseUrlToUse) {
         setStatus("offline");
-        setErrorMessage(errDetail);
+        setErrorMessage("API Base URL is blank.");
         setModels([]);
+        return;
       }
-    } catch (err: any) {
-      setStatus("offline");
-      setModels([]);
-      if (err.name === "AbortError") {
-        setErrorMessage("Connection request timed out (no response within 3.5s).");
-      } else {
-        setErrorMessage(
-          err.message || "Failed to connect to API endpoint. Check server or CORS.",
-        );
+
+      setStatus("checking");
+      setErrorMessage(null);
+
+      try {
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+        };
+
+        if (apiKeyToUse && apiKeyToUse.trim() !== "") {
+          headers["Authorization"] = `Bearer ${apiKeyToUse}`;
+        }
+
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), 3500);
+
+        const cleanUrl = baseUrlToUse.endsWith("/")
+          ? baseUrlToUse.slice(0, -1)
+          : baseUrlToUse;
+        const targetUrl = `${cleanUrl}/models`;
+
+        const response = await fetch(targetUrl, {
+          method: "GET",
+          headers,
+          signal: controller.signal,
+        });
+
+        clearTimeout(id);
+
+        if (response.ok) {
+          const data = await response.json();
+          let fetchedList: string[] = [];
+          if (data && Array.isArray(data.data)) {
+            fetchedList = data.data
+              .map((m: any) => m.id)
+              .filter((id: any) => typeof id === "string");
+          } else if (data && Array.isArray(data)) {
+            fetchedList = data
+              .map((m: any) => m.id || m)
+              .filter((id: any) => typeof id === "string");
+          }
+          setModels(fetchedList);
+          setStatus("connected");
+          setErrorMessage(null);
+        } else {
+          let errDetail = `HTTP ${response.status}: ${response.statusText || "Endpoint Error"}`;
+          try {
+            const errBody = await response.json();
+            if (errBody?.error?.message) {
+              errDetail += ` (${errBody.error.message})`;
+            }
+          } catch {}
+          setStatus("offline");
+          setErrorMessage(errDetail);
+          setModels([]);
+        }
+      } catch (err: any) {
+        setStatus("offline");
+        setModels([]);
+        if (err.name === "AbortError") {
+          setErrorMessage("Connection request timed out (no response within 3.5s).");
+        } else {
+          setErrorMessage(
+            err.message || "Failed to connect to API endpoint. Check server or CORS.",
+          );
+        }
       }
-    }
-  }, [apiBaseUrl, apiKey]);
+    },
+    [apiBaseUrl, apiKey],
+  );
 
   useEffect(() => {
     checkConnection();
