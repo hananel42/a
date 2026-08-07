@@ -6,6 +6,7 @@
 import { Agent } from "../types/agent";
 import {
   ADMIN_AGENT_INSTRUCTIONS,
+  ADMIN_SYSTEM_PROMPT_TEMPLATE,
   CODE_ARCHITECT_INSTRUCTIONS,
   RESEARCH_ANALYST_INSTRUCTIONS,
 } from "../constants/agentPrompts";
@@ -61,6 +62,7 @@ export const defaultAgents: Agent[] = [
       includeActiveFiles: true,
       includeWorkspaceTree: true,
       includeMemories: true,
+      systemPromptTemplate: ADMIN_SYSTEM_PROMPT_TEMPLATE,
     },
     examplePrompts: [
       "Inspect workspace files and report directory structure.",

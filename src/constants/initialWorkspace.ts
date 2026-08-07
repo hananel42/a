@@ -43,12 +43,11 @@ def sample_tool(message: str) -> str:
     """
     A custom tool that uses the workspace LLM engine to generate a response.
     """
-    tools.log(f"Processing message: {message}")
     
     # Use the workspace LLM engine to generate a response
     response = llm.generate(f"Acknowledge and summarize this input concisely: {message}")
     
-    return f"Tool Output: {response}"`;
+    return response`;
 
 /**
  * Factory function to generate the default array of workspace items (files & folders).

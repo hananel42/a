@@ -177,29 +177,40 @@ function ensureDirInFS(FS: any, dirPath: string) {
 function populatePyodideFS(pyodide: any, items: WorkspaceItem[]) {
   const FS = pyodide.FS;
 
-  const writeVirtualFile = (filePath: string, content: string, rootDir: string = "/") => {
+  // 0. Ensure root dirs
+  ensureDirInFS(FS, "/sys_workspace");
+  ensureDirInFS(FS, "/workspace");
+
+  const writeVirtualFile = (filePath: string, content: string, rootDir: string = "/workspace/") => {
     const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
-    const lastSlash = cleanPath.lastIndexOf("/");
+    const cleanRootDir = rootDir.endsWith("/") ? rootDir : rootDir + "/";
+    const fullVirtualPath = cleanRootDir + cleanPath;
+    const lastSlash = fullVirtualPath.lastIndexOf("/");
     if (lastSlash > 0) {
-      ensureDirInFS(FS, rootDir.slice(1) + cleanPath.slice(0, lastSlash));
+      ensureDirInFS(FS, fullVirtualPath.slice(0, lastSlash));
     }
     try {
-      FS.writeFile(rootDir + cleanPath, content, { encoding: "utf8" });
+      FS.writeFile(fullVirtualPath, content, { encoding: "utf8" });
     } catch (e) {
-      console.warn("Failed to write virtual file to Pyodide FS:", cleanPath, e);
+      console.warn("Failed to write virtual file to Pyodide FS:", fullVirtualPath, e);
     }
   };
-
-  // 0. Ensure root dirs
-  ensureDirInFS(FS, "sys_workspace");
-  ensureDirInFS(FS, "workspace");
 
   // 1. Inject bundled workspace python libraries
   for (const [relPath, content] of Object.entries(WORKSPACE_PYTHON_FILES)) {
     writeVirtualFile(relPath, content, "/sys_workspace/");
   }
 
-  // 2. Inject user workspace items
+  // 2. Inject user workspace items: folders first, then files
+  for (const item of items) {
+    if (item.type === "folder") {
+      const vPath = getVirtualPath(item.id, items);
+      if (vPath) {
+        ensureDirInFS(FS, "/workspace/" + vPath);
+      }
+    }
+  }
+
   for (const item of items) {
     if (item.type === "file") {
       const vPath = getVirtualPath(item.id, items);
@@ -336,8 +347,6 @@ import builtins
 file_path_val = ${JSON.stringify(filePathVal)}
 
 # Mount sys_workspace for internal libraries
-
-# Mount sys_workspace for internal libraries
 if "/sys_workspace" not in sys.path:
     sys.path.insert(0, "/sys_workspace")
 
@@ -356,53 +365,64 @@ def _jail_path(p):
             return "/workspace" + p
     return p
 
-_orig_open = builtins.open
+# Store unhooked originals safely on builtins and os to prevent infinite recursion on re-execution
+if not hasattr(builtins, '_unhooked_open'):
+    builtins._unhooked_open = builtins.open
+
 def _hooked_open(file, *args, **kwargs):
-    return _orig_open(_jail_path(file), *args, **kwargs)
+    return builtins._unhooked_open(_jail_path(file), *args, **kwargs)
+
 builtins.open = _hooked_open
 
-import os
-_orig_listdir = os.listdir
+if not hasattr(os, '_unhooked_listdir'):
+    os._unhooked_listdir = os.listdir
+
 def _hooked_listdir(path="."):
-    return _orig_listdir(_jail_path(path))
+    return os._unhooked_listdir(_jail_path(path))
+
 os.listdir = _hooked_listdir
 
-_orig_abspath = os.path.abspath
-def _hooked_abspath(path):
-    res = _orig_abspath(path)
-    if res.startswith("/workspace"):
-        # map back to root for the user perspective if needed, but usually we just return the jailed path
-        # wait, abspath is used internally, we probably shouldn't mess with it too much, or maybe we should strip /workspace
-        pass
-    return res
+if not hasattr(os.path, '_unhooked_abspath'):
+    os.path._unhooked_abspath = os.path.abspath
 
-_orig_walk = os.walk
+def _hooked_abspath(path):
+    return os.path._unhooked_abspath(path)
+
+os.path.abspath = _hooked_abspath
+
+if not hasattr(os, '_unhooked_walk'):
+    os._unhooked_walk = os.walk
+
 def _hooked_walk(top, topdown=True, onerror=None, followlinks=False):
-    for root, dirs, files in _orig_walk(_jail_path(top), topdown, onerror, followlinks):
+    for root, dirs, files in os._unhooked_walk(_jail_path(top), topdown, onerror, followlinks):
         if root.startswith("/workspace"):
             root = root[10:] if root != "/workspace" else "/"
         yield root, dirs, files
+
 os.walk = _hooked_walk
 
+# Resolve working directory for execution:
+# Always runs in the directory of the file being executed or the main workspace directory
+target_dir = "/workspace"
 if file_path_val:
-    abs_path = os.path.abspath(os.path.join("/workspace", file_path_val))
-    parent_dir = os.path.dirname(abs_path)
-    if parent_dir not in sys.path:
-        sys.path.insert(0, parent_dir)
-    try:
-        if os.path.isdir(parent_dir):
-            os.chdir(parent_dir)
-        else:
-            os.chdir("/workspace")
-    except Exception:
-        os.chdir("/workspace")
-else:
-    if "/workspace" not in sys.path:
-        sys.path.insert(0, "/workspace")
-    try:
-        os.chdir("/workspace")
-    except Exception:
-        pass
+    clean_rel = str(file_path_val).replace("\\\\", "/").strip().lstrip("/")
+    full_path = os.path.normpath(os.path.join("/workspace", clean_rel))
+    if os.path.isdir(full_path):
+        target_dir = full_path
+    else:
+        parent = os.path.dirname(full_path)
+        if os.path.isdir(parent):
+            target_dir = parent
+
+if target_dir not in sys.path:
+    sys.path.insert(0, target_dir)
+if "/workspace" not in sys.path:
+    sys.path.insert(0, "/workspace")
+
+try:
+    os.chdir(target_dir)
+except Exception:
+    os.chdir("/workspace")
 
 
 os.environ["AGENT_ID"] = ${JSON.stringify(agentId)}

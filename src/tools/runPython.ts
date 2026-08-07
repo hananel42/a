@@ -17,23 +17,23 @@ export const runPythonTool: ToolModule = {
   schema: {
     name: "run_python",
     description:
-      'Run Python code directly or execute a script file in workspace (e.g. "src/my_script.py"). Accepts optional STDIN input lines via "inputs".',
+      'Execute Python code or a script file in the workspace (e.g. "script.py" or "src/app.py"). Automatically executes in the script\'s directory or workspace root. Accepts STDIN input lines via "inputs" array.',
     parameters: {
       type: "object",
       properties: {
         code: {
           type: "string",
-          description: "Raw Python code snippet to execute.",
+          description: "Raw Python code string to execute.",
         },
         filePath: {
           type: "string",
-          description: "Optional relative path to Python script file",
+          description: "Relative path to Python script file (determines working directory context).",
         },
         inputs: {
           type: "array",
           items: { type: "string" },
           description:
-            "Optional array of STDIN input lines sent to the Python script process.",
+            "List of input strings to sequentially answer input() prompts in the script.",
         },
       },
     },

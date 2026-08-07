@@ -116,7 +116,10 @@ export async function runPythonSandbox(
     output += `${AGENT_MESSAGES.PYTHON_SYNCED_FILES_PREFIX}${syncedPaths.join(", ")}${AGENT_MESSAGES.PYTHON_SYNCED_FILES_SUFFIX}`;
   }
 
-  if (!output.trim()) {
+  if (rawResult.requiresInput) {
+    if (output) output += "\n";
+    output += `[Input Required]: The script is waiting for STDIN input (${rawResult.extractedPrompt || "input()"}). You can re-run 'run_python' and pass the required input lines in the 'inputs' array parameter (e.g. inputs: ["answer1", "answer2"]).`;
+  } else if (!output.trim()) {
     output = rawResult.success
       ? AGENT_MESSAGES.PYTHON_SCRIPT_COMPLETED_NO_OUTPUT
       : `${AGENT_MESSAGES.PYTHON_SCRIPT_FAILED_PREFIX}${rawResult.error || AGENT_MESSAGES.PYTHON_UNKNOWN_ERROR}${AGENT_MESSAGES.PYTHON_SCRIPT_FAILED_SUFFIX}`;
